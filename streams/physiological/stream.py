@@ -24,14 +24,16 @@ is normal, so fusion must read this together with activity and motion.)
 
 score   = probability of LOW or HIGH, i.e. that heart rate is outside 60 to
           100 bpm. Context for fusion, not a risk score.
-quality = 0 until 30 s of usable PPG, or with no PPG, NaN, no skin
-          temperature (her model needs it), or her POOR quality gate.
+quality = 0 until 30 s of usable PPG, or with no PPG, NaN, her POOR quality
+          gate, or no skin temperature when her original model is loaded
+          (v2 does not use temperature).
           Otherwise the agreement of her two heart-rate estimates (peak
           counting and spectrum): agree within 5 bpm -> 1.0, 25 bpm or more
           apart -> 0.0, linear between. Her own quality score is kept as
           last_ppg_quality, but on her training data it never went below
           0.80, so it cannot tell good from bad windows. The agreement rule
-          is a starting value, not validated yet.
+          was checked on real PPG (PPG-DaLiA, 15 people): windows it trusts
+          are off by 3.3 bpm, windows it rejects by 38.9 bpm.
 """
 
 from __future__ import annotations
@@ -50,11 +52,15 @@ from .inference import PhysiologicalInference  # noqa: E402
 from .ppg import preprocess_ppg  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MODEL = ROOT / "models" / "physiological_xgb.joblib"
+# v2 (Stage 6.4): her settings retrained without skin temperature on real
+# PPG-DaLiA features (testing/train_physio_v2.py). Her original is the fallback.
+DEFAULT_MODEL = ROOT / "models" / "physiological_xgb_v2.joblib"
+if not DEFAULT_MODEL.exists():
+    DEFAULT_MODEL = ROOT / "models" / "physiological_xgb.joblib"
 MODEL_FS = 64            # her training rate (PPG-DaLiA wrist BVP)
 BUFFER_S = 30.0          # her training window
 GAP_S = 1.0
-RENAME = {"Normal": "LOW", "Elevated": "NORMAL", "Abnormal": "HIGH"}
+RENAME = {"Normal": "LOW", "Elevated": "NORMAL", "Abnormal": "HIGH"}   # her names; v2 already uses LOW/NORMAL/HIGH
 AGREE_FULL, AGREE_ZERO = 5.0, 25.0     # bpm, starting values
 
 
@@ -168,7 +174,8 @@ class PhysiologicalStream(Stream):
         self.last_quality_state = res.get("quality_state")
 
         if res["state"] == "UNAVAILABLE":
-            self.last_state = "NO_TEMP" if temp is None else "UNAVAILABLE"
+            needs_temp = "skin_temperature" in self.inference.features
+            self.last_state = "NO_TEMP" if (temp is None and needs_temp) else "UNAVAILABLE"
             self.last_quality = 0.0
             return 0.0
         probs = {RENAME.get(k, k): round(float(v), 3)

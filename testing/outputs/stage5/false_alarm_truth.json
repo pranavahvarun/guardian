@@ -4,6 +4,7 @@
   "description": "Walking, hitting a table with the hand, a stumble, walking. The gate may open; the motion score should stay low.",
   "simulated": true,
   "seconds": 46.9,
+  "clock": null,
   "truth": [
     {
       "start": 0.0,

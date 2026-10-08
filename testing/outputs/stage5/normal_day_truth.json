@@ -4,6 +4,7 @@
   "description": "Walking, sitting down and getting up, a door, clapping, walking. Nothing should be flagged.",
   "simulated": true,
   "seconds": 82.1,
+  "clock": null,
   "truth": [
     {
       "start": 0.0,

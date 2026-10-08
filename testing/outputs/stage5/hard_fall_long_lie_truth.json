@@ -4,6 +4,7 @@
   "description": "Walking, a forward slip fall, then 60 s without moving. The motion stream should flag the impact; stillness should stay high.",
   "simulated": true,
   "seconds": 96.0,
+  "clock": null,
   "truth": [
     {
       "start": 0.0,

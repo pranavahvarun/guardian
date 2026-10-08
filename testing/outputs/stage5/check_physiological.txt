@@ -1,5 +1,5 @@
 === physiological: PASS ===
-[PASS] loads        streams.physiological.PhysiologicalStream (model models/physiological_xgb.joblib)
+[PASS] loads        streams.physiological.PhysiologicalStream (model models/physiological_xgb_v2.joblib)
 [PASS] contract     subclass of contract.Stream
 [PASS] own module   imports no other stream
 [PASS] windows      all 10 cases within the rules
@@ -15,5 +15,5 @@
     impact    score      0.0  quality      0.0
 [PASS] damaged in   quality drops for empty, short or NaN windows
 [PASS] long run     241 windows (5 min), 0 broke the rules, 218 with quality above 0
-[PASS] speed        5.24 ms per window on average, worst 13.9 ms (pass < 50 ms)
+[PASS] speed        5.81 ms per window on average, worst 17.5 ms (pass < 50 ms)
 [PASS] pipeline     extras stored: ['buffer_s', 'confidence', 'hr', 'hr_peak', 'hr_spectral', 'mean_rr', 'ppg_quality', 'probs', 'pulse_amplitude', 'quality_state', 'rmssd', 'sdnn', 'skin_temperature', 'state']

@@ -1,0 +1,20 @@
+flowchart TD
+  A["Wrist sensor window<br/>2.5 s at 50 Hz, a new one every 1.24 s<br/>accelerometer (g) + gyroscope (deg/s)"] --> B["Add the new samples<br/>to a 30 s buffer"]
+  B --> C["Clean the signal<br/>clip to ±8 g, pass through 20 Hz"]
+  C --> D{"Acceleration magnitude<br/>above 2.25 g?<br/>(impact gate)"}
+  C --> M["Movement tracker, every window<br/>moving = spread above 0.03 g<br/>or rotation above 20 deg/s"]
+  D -- No --> E["No new impact<br/>keep the current event, if any"]
+  D -- Yes --> F{"Within 3 s of the<br/>last trigger?"}
+  F -- Yes --> E
+  F -- No --> G["Wait until 3 s after the impact<br/>cut a segment: 2 s before to 3 s after"]
+  G --> H["Compute 18 features<br/>impact size, free-fall dip, jerk,<br/>rotation, tilt change, stillness after"]
+  H --> I["XGBoost, 100 trees<br/>probability of a fall, 0 to 1"]
+  I --> J{"Earlier impact still in its<br/>60 s hold and stronger?"}
+  J -- Yes --> K["Keep the earlier, stronger impact"]
+  J -- No --> L["New impact becomes the event"]
+  K --> N["Event score<br/>held for 60 s, then fades over 30 s"]
+  L --> N
+  E --> N
+  M --> O["Seconds without real movement<br/>moved again after the impact?<br/>(8 s of movement; cancelled after 10 s still)"]
+  N --> P["Output to fusion, every window<br/>impact score, quality, stillness,<br/>seconds still, moved again, time since impact"]
+  O --> P

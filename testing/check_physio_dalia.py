@@ -25,6 +25,8 @@ her model picks, and how much the wrist moved (std of |acc| in g; below
 
     py -m testing.check_physio_dalia
     py -m testing.check_physio_dalia --subjects S1 S2      (quick try)
+    py -m testing.check_physio_dalia --root "D:\\MVP\\Sem VII\\PDP\\data"   (data on another drive;
+        the folder holding S1..S15 is found anywhere below --root)
 
 Writes testing/outputs/stage6/physio_dalia.txt and physio_dalia_windows.csv
 """
@@ -188,7 +190,7 @@ def loso(D, L):
     out = {}
     for name, cols in (("temperature read correctly", FEATS),
                        ("without temperature", [c for c in FEATS if c != "skin_temperature"])):
-        scores, skipped = [], 0
+        scores, skipped, yl, pl = [], 0, [], []
         for s in sorted(set(g)):
             tr, te = g != s, g == s
             if len(set(y[tr])) < 3:                 # a band missing from training
@@ -198,25 +200,43 @@ def loso(D, L):
                               learning_rate=0.05, subsample=0.8, colsample_bytree=0.8,
                               random_state=42, tree_method="hist", verbosity=0)
             m.fit(X.loc[tr, cols], y[tr], sample_weight=compute_sample_weight("balanced", y[tr]))
-            scores.append(bal(y[te], m.predict(X.loc[te, cols])))
+            pred = m.predict(X.loc[te, cols])
+            scores.append(bal(y[te], pred))
+            yl += list(y[te])
+            pl += list(pred)
         out[name] = (np.mean(scores), np.std(scores)) if scores else (float("nan"), float("nan"))
+        yl, pl = np.array(yl), np.array(pl)
+        low = yl == BANDS["LOW"]
+        rec_low = float(np.mean(pl[low] == BANDS["LOW"])) if low.any() else float("nan")
+        out[name] += (rec_low,)
         L.append(f"   leave-one-person-out, {name:28s} balanced {out[name][0]:.3f} "
-                 f"(sd {out[name][1]:.3f})" + (f", {skipped} folds skipped" if skipped else ""))
+                 f"(sd {out[name][1]:.3f}), LOW caught {rec_low:.0%} of {int(low.sum())}"
+                 + (f", {skipped} folds skipped" if skipped else ""))
     L.append(f"RESULT temperature: LOSO with temperature read correctly "
              f"{out['temperature read correctly'][0]:.3f}, without "
              f"{out['without temperature'][0]:.3f} (her table, wrong temperature: see check_physio_inputs)")
+    L.append(f"RESULT low (new people): HR below 60 caught {out['temperature read correctly'][2]:.0%} "
+             f"with temperature, {out['without temperature'][2]:.0%} without")
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--subjects", nargs="*", default=None)
+    ap.add_argument("--root", default=str(DALIA),
+                    help="folder with S1..S15, or any folder above it")
     a = ap.parse_args(argv)
-    files = sorted(DALIA.glob("S*/S*.pkl"), key=lambda p: int(p.stem[1:]))
+    root = Path(a.root)
+    files = [f for f in root.glob("S*/S*.pkl") if f.stem == f.parent.name]
+    if not files:                                   # look further down
+        files = [f for f in root.rglob("S*.pkl") if f.stem == f.parent.name
+                 and f.stem[1:].isdigit()]
+    files = sorted(files, key=lambda p: int(p.stem[1:]))
     if a.subjects:
         files = [f for f in files if f.stem in set(a.subjects)]
     if not files:
-        print(f"No PPG-DaLiA files under {DALIA}\nExpected S1/S1.pkl ... S15/S15.pkl")
+        print(f"No PPG-DaLiA files under {root}\nExpected .../S1/S1.pkl ... S15/S15.pkl")
         sys.exit(1)
+    print(f"data: {files[0].parent.parent}  ({len(files)} people)")
     stream = PhysiologicalStream.load()
     t0, rows, L = time.time(), [], ["Physiological module on REAL PPG (PPG-DaLiA)", ""]
     for f in files:

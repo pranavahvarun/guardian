@@ -68,7 +68,8 @@ def sweep(L):
                  f"{p.get('HIGH', 0):7.3f} {s.last_quality:7.2f}")
         low_hits += hr < 60 and s.last_state == "LOW"
     n_low = sum(h < 60 for h in (40, 45, 50, 55, 58))
-    L.append(f"RESULT sweep: LOW band picked for {low_hits} of {n_low} heart rates below 60 bpm")
+    L.append(f"RESULT sweep (SYNTHETIC PPG, plumbing only): LOW band picked for {low_hits} of "
+             f"{n_low} heart rates below 60 bpm; on real PPG see check_physio_dalia")
     L.append("")
 
 

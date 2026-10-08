@@ -4,7 +4,7 @@ simulator/scenarios.py -- SIMULATED timelines for demos and integration tests
 
 How a scenario is made:
 - Motion is REAL wrist data: WEDA-FALL recordings from the test people
-  (U04 U07 U08 U10 young, U21 U22 elderly), none of whom the motion model
+  (U04 U07 U08 U10 young, U21 U22 U29 elderly), none of whom the motion model
   was trained on. Recordings are joined with a 0.5 s cross-fade.
 - "Lying still" stretches after a fall are SYNTHETIC: the last wrist
   orientation held with small noise. WEDA recordings end a few seconds
@@ -52,6 +52,7 @@ class Scenario:
     simulated: bool = True
     ppg: np.ndarray | None = None       # (M,) synthetic, at ppg_fs
     ppg_fs: int = ppg_synth.PPG_FS
+    clock: str | None = None            # time of day at the start, "HH:MM" (for fusion)
 
     @property
     def seconds(self) -> float:
@@ -153,7 +154,7 @@ class Builder:
     def impact_t(self):
         return self.events[0]["t"] if self.events else None
 
-    def build(self, name, title, description, hr_points, temp_points=None):
+    def build(self, name, title, description, hr_points, temp_points=None, clock=None):
         end = self.now
         hr = self.trace([(0, hr_points[0][1])] + hr_points + [(end, hr_points[-1][1])], 1.5)
         temp_points = temp_points or [(0, 33.2), (end, 33.4)]
@@ -165,7 +166,7 @@ class Builder:
                                 acc_mag=np.interp(tp, t50, np.linalg.norm(self.acc, axis=1)),
                                 seed=int(self.rng.integers(1 << 30)))
         return Scenario(name, title, description, self.acc, self.gyro, hr, temp,
-                        self.truth, self.events, ppg=ppg, ppg_fs=pfs)
+                        self.truth, self.events, ppg=ppg, ppg_fs=pfs, clock=clock)
 
 
 # --------------------------------------------------------------------------
@@ -231,8 +232,20 @@ def hr_spike_no_fall(lib):
                    [(0, 74), (t0, 78), (t0 + 20, 150), (t0 + 60, 148)])
 
 
+def night_sleep(lib):
+    b = Builder(lib, 7).record("U29", "D01").record("U29", "D04")
+    b.still(120, "lying in bed, asleep (synthetic)")
+    t0 = b.truth[-1]["start"]
+    return b.build("night_sleep", "Going to bed at night (elderly)",
+                   "Late evening (starts 23:30): walking, sitting on the bed, then two "
+                   "minutes lying still with a calm heart rate. Long stillness alone is "
+                   "not an emergency: nothing should be raised.",
+                   [(0, 74), (t0, 68), (t0 + 60, 63), (t0 + 120, 62)], clock="23:30")
+
+
 SCENARIOS = {f.__name__: f for f in (normal_day, hard_fall_long_lie, fall_then_get_up,
-                                     faint_collapse, false_alarm, hr_spike_no_fall)}
+                                     faint_collapse, false_alarm, hr_spike_no_fall,
+                                     night_sleep)}
 
 
 def build(name, root=weda.DEFAULT_ROOT) -> Scenario:

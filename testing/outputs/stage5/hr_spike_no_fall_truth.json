@@ -4,6 +4,7 @@
   "description": "Sitting, opening a door, then sitting quietly while heart rate climbs to 150 bpm. Motion should stay quiet; this is for the physiological stream and fusion.",
   "simulated": true,
   "seconds": 94.6,
+  "clock": null,
   "truth": [
     {
       "start": 0.0,

@@ -743,9 +743,16 @@ STAGE 6 - Add the other modules (when their files arrive)
   6.3 Plug both into core/pipeline.py (one line each); adapt the few places
       that read activity fields (simulator, watch, report) if names differ.
   6.4 Agree the heart-rate fields and thresholds with Mithuna (with sources).
-  6.5 Re-run all scenarios, the live replay and the module report with the
+  6.5 Motion module report for Mithuna (to go into the team PPT). After the
+      physiological real-data test, before Stage 7. Sections: how it works,
+      description, why these datasets, why XGBoost (screenshot), tuning
+      (screenshot), inputs/outputs and what it gives fusion, flowchart
+      (diagram code -> draw.io / eraser.io image), steps and why, short
+      algorithm, same-dataset results (screenshot), cross-dataset results
+      (screenshot). Scripts print the screenshot tables from saved results.
+  6.6 Re-run all scenarios, the live replay and the module report with the
       real modules. Add a night_sleep scenario (long still, normal HR).
-  6.6 Log + commit.
+  6.7 Log + commit.
 
 STAGE 7 - Fusion, emergency score, alerts (core/FUSION_DESIGN.md)
   7.1 Build core/fusion.py: reads each window's stream outputs, scores every
@@ -891,3 +898,89 @@ THINGS FOUND IN HER MODULE (to tell Mithuna)
   XGBoost: 0.784. All 7 features: 0.826. Most of the gain is the model
   correcting her HR estimator.
 - 30 s window: the estimate lags fast changes by about 15 s (faint scenario).
+
+PLAN CHANGE (8 Oct 2026)
+- Added 6.5: motion module report for Mithuna (11 sections, 4 terminal
+  screenshots, 1 flowchart from diagram code). Old 6.5 and 6.6 are now 6.6
+  and 6.7. Done after the PPG-DaLiA real-data test, before Stage 7.
+
+STEP 6.5 - Motion module report for Mithuna (8 Oct 2026)
+- Written as a shared doc, "Guardian Motion Module Report", 11 sections in
+  this order: what it is, role (inputs/outputs/fusion), how it works,
+  flowchart, steps and why, algorithm, datasets, model choice, tuning,
+  same-dataset results, unseen-dataset results.
+- Screenshots from testing/motion_report_tables.py (ss1 ss2 ss4 ss5, saved
+  results only); flowchart from testing/outputs/figures/motion_flowchart.mmd.
+- Stated plainly in it: 5 ML models + gate baseline (first run before the
+  gyro unit fix); model chosen while UMAFall-trained; the 3 s model has dev
+  numbers only (locked test was the 1.5 s version); falls are staged, WEDA
+  onto a mattress.
+
+STEP 6.4 - Physiological module on REAL PPG (PPG-DaLiA, 8 Oct 2026)
+- testing/check_physio_dalia.py, 15 people, 8612 windows of 30 s, run
+  through our wrapper. Data kept on D: (--root), not in the repo.
+- HR error: mean 16.8 bpm (her number reproduced), but still wrist 2.4 bpm
+  (91% within 5 bpm) vs moving 20.1 bpm (47%). Movement is the problem.
+- Quality rule (agreement of her two HR estimates), pass mark set before:
+  trusted 62% of windows, error 3.3 bpm; rejected 38.9 bpm -> KEEP.
+  Her own quality score: min 0.81 again, never flags anything.
+- Slow heart rate: 484 windows below 60 bpm. Her deployed model said LOW in
+  82% (in-sample). Leave-one-person-out: LOW caught 87%.
+- CORRECTION: the earlier finding "the model never picks LOW" came from
+  SYNTHETIC PPG. My synthetic pulse shape broke her peak counting below
+  60 bpm (quality 0 there), so the model saw odd features. On real PPG it
+  does pick LOW. The training-table fact still holds: a LOW reading during
+  movement is often wrong (reference above 60 in 84% of those windows).
+  The faint scenario's "52 bpm shown as HIGH" is synthetic and says nothing.
+- Temperature: her code reads it from the wrong time (mean 1.82 C off,
+  max 7.65 C). With it read correctly LOSO balanced 0.848; without
+  temperature 0.846 (her table with the wrong reading: 0.830). Temperature
+  adds nothing -> drop it (also removes "no temperature = no output").
+
+STEP 6.4 - Physiological model v2, no temperature (8 Oct 2026)
+- testing/train_physio_v2.py on the real-PPG feature table (8612 windows,
+  15 people). Her settings; 6 features (temperature dropped); bands named
+  LOW / NORMAL / HIGH. Rule set before: balanced class weights (B) only if
+  they catch more LOW and lose at most 0.02 balanced accuracy.
+                          balanced   LOW   NORMAL   HIGH   (new people)
+    A no weights (hers)     0.795    77%    92%     72%
+    B balanced weights      0.846    87%    82%     87%
+  -> B. models/physiological_xgb_v2.joblib, trained on all 15 people.
+  Her original model kept in models/ as the fallback.
+- Cost of B: NORMAL caught 82% (was 92%), so about 1 in 5 normal windows
+  reads as out of range. Fusion must not act on one window: needs quality
+  >= 0.5, a sustained run, and activity/motion context.
+- check_stream physiological: PASS with v2 (5 ms per window).
+- Scenario PPG is synthetic and its pulse shape fools peak counting at low
+  rates (faint: 54 bpm read as HIGH; fall_then_get_up: HIGH at 78 bpm).
+  Says nothing about real PPG; fix the synthetic shape in 6.6.
+
+STEP 6.6 - Scenarios with all three real modules (8 Oct 2026, code ready)
+- Synthetic PPG fixed (simulator/ppg_synth.py): pulse shape now a fixed
+  time after each beat (systolic 0.12 s, small diastolic wave 0.33 s at 0.2).
+  The old shape gave two peaks per beat below about 60 bpm. Her peak and
+  spectral HR now read 40-180 bpm within 3 bpm on clean synthetic PPG.
+- New scenario night_sleep (U29, elderly test person): walking, sitting on
+  the bed, 120 s lying still, HR 74 -> 62, starts 23:30. Expected: nothing
+  raised. Scenarios now carry a start clock (truth JSON) for fusion.
+- Module report: 7 scenarios; activity WEDA (same dataset) and UMAFall
+  (cross) results from testing/activity_report_tables.py.
+
+STEP 6.6 RESULTS (8 Oct 2026) - all three real modules, 7 scenarios
+- check_stream all: PASS (motion 1.6 ms, activity 17.9 ms, physiological
+  5.8 ms per window).
+- Activity, model in use: WEDA new people smoothed accuracy 82.3%, balanced
+  80.1%, macro F1 78.8% (raw forest 77.6 / 74.4 / 73.2). UMAFall never
+  trained on: accuracy 38.8%, balanced 40.3%, macro F1 33.2%. (His original
+  model on UMAFall: accuracy 48.2%, balanced 38.2%; ours trades accuracy for
+  balance.)
+- Motion unchanged: hard fall flagged 3.9 s after impact, fall then get up
+  4.2 s, faint 7.1 s; normal day, knocks, HR spike and night sleep never.
+- Heart rate with the fixed synthetic PPG: faint now reads LOW at 54 bpm
+  (it flickers LOW/NORMAL near 60). HR spike reads HIGH from 50 s. Movement
+  makes single windows flicker HIGH at about 78 bpm (false_alarm, quality
+  0.67; fall_then_get_up). Fusion must require a sustained run, not one window.
+- night_sleep: no impact, 120 s without movement, HR NORMAL (70 bpm),
+  activity reads SITTING_STANDING while lying (no lying class). This is the
+  case fusion must keep quiet on.
+STAGE 6 STATUS: DONE, except agreeing HR thresholds with Mithuna (6.4).

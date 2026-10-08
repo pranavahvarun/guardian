@@ -1,0 +1,27 @@
+==============================================================================
+ACTIVITY MODULE - SAME DATASET, NEW PEOPLE (WEDA-FALL)
+Leave-one-person-out: each of the 25 people is tested by a model that
+never saw them. Daily activities D01-D11, 5573 windows of 2.5 s.
+==============================================================================
+                                      raw forest   smoothed (in use)
+------------------------------------------------------------------------------
+  accuracy                                 77.6%               82.3%
+  balanced accuracy                        74.4%               80.1%
+  macro F1                                 73.2%               78.8%
+------------------------------------------------------------------------------
+  caught, per class (smoothed):
+    LOCOMOTION                               85%   (2587 windows)
+    SITTING_STANDING                         80%   (818 windows)
+    UPPER_BODY                               87%   (1318 windows)
+    OTHER                                    68%   (850 windows)
+------------------------------------------------------------------------------
+  confusion (smoothed): rows = true class, columns = predicted
+                        LOCOMOTION  SITTING_ST  UPPER_BODY       OTHER
+    LOCOMOTION                2202         163          59         163
+    SITTING_STANDING            29         654          87          48
+    UPPER_BODY                  15         102        1153          48
+    OTHER                      133          72          68         577
+------------------------------------------------------------------------------
+  Smoothed = mean of the last 3 windows' probabilities (causal).
+  His report (his timing): 80.6% accuracy, 74.0% balanced, 75.6% F1.
+  WEDA-FALL: young volunteers and adults aged 77-95, wrist smartwatch.

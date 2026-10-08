@@ -1,0 +1,10 @@
+Physiological model v2: no skin temperature, leave-one-person-out
+8612 windows, 15 people; bands: LOW 484, NORMAL 5886, HIGH 2242
+
+  variant                          balanced     sd    LOW  NORMAL   HIGH
+  A no class weights (hers)           0.795  0.111    77%     92%    72%
+  B balanced class weights            0.846  0.087    87%     82%    87%
+  (LOW / NORMAL / HIGH = share of each band caught, people never trained on)
+RESULT v2 loso: A balanced 0.795 LOW 77%; B balanced 0.846 LOW 87%
+VERDICT use B (rule: B if it catches more LOW and loses at most 0.02 balanced)
+saved physiological_xgb_v2.joblib: variant B, 8612 windows, all 15 people

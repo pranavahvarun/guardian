@@ -37,7 +37,7 @@ OUT = ROOT / "testing" / "outputs" / "stage5"
 
 # which demo wearer (backend/db/init/03_seed.sql) each scenario belongs to
 WEARER = {"normal_day": 2, "hard_fall_long_lie": 2, "fall_then_get_up": 3,
-          "faint_collapse": 3, "false_alarm": 4, "hr_spike_no_fall": 4}
+          "faint_collapse": 3, "false_alarm": 4, "hr_spike_no_fall": 4, "night_sleep": 3}
 FIG = ROOT / "testing" / "outputs" / "figures"
 
 
@@ -55,7 +55,7 @@ def run(name, store=None):
     flat.to_csv(OUT / f"{name}_outputs.csv", index=False)
     (OUT / f"{name}_truth.json").write_text(json.dumps(
         dict(name=sc.name, title=sc.title, description=sc.description,
-             simulated=True, seconds=round(sc.seconds, 1), truth=sc.truth,
+             simulated=True, seconds=round(sc.seconds, 1), clock=sc.clock, truth=sc.truth,
              events=sc.events), indent=2))
     thr = getattr(pipe.streams.get("motion"), "threshold", None)
     summary = _summary(sc, D, thr)

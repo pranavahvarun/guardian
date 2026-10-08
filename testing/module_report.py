@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT))
 OUTS = ROOT / "testing" / "outputs"
 S5, FIG = OUTS / "stage5", OUTS / "figures"
 SCEN = ["normal_day", "hard_fall_long_lie", "fall_then_get_up", "faint_collapse",
-        "false_alarm", "hr_spike_no_fall"]
+        "false_alarm", "hr_spike_no_fall", "night_sleep"]
 
 # Activity numbers are Sudharshan's own (his repo, results/ and his results
 # summary). The input check line comes from testing/check_activity_inputs.py.
@@ -35,11 +35,8 @@ ACTIVITY = [
     "  No lying/still class: stillness comes from the motion module.",
     "WEDA-FALL, leave-one-person-out (25 people): accuracy 80.6%, balanced 74.0%,",
     "  macro F1 75.6% (his numbers).",
-    "UMAFall, frozen model: accuracy 28.6% (his numbers). Walking and stairs",
-    "  transfer well; bending, sit/stand, lying down and hands up mostly do not.",
-    "  His UMAFall run left the gyroscope in deg/s (model expects rad/s), so this",
-    "  number mixes a unit error with real dataset shift. He also read the waist",
-    "  sensor (ID 3). Re-run with the wrist (ID 2) and right units: see below.",
+    "UMAFall, frozen model: his 28.6% used the waist sensor and the wrong gyro",
+    "  units; re-run with the wrist sensor and right units below.",
     "Caveat: the final model is trained on all 25 WEDA people, including the",
     "  people in our scenarios, so activity output in the scenarios is in-sample.",
     "Model in use: his features and settings retrained on our evenly spaced",
@@ -60,9 +57,13 @@ PHYSIO = [
     "  in the wrapper: LOW (<60), NORMAL (60-100), HIGH (>100) bpm.",
     "Her numbers: leave-one-person-out balanced accuracy 77.2% (sd 13.9);",
     "  HR error 16.9 bpm mean, 55% of windows within 5 bpm (8612 windows).",
+    "Model in use (v2): her settings retrained without skin temperature, with",
+    "  balanced class weights (testing/train_physio_v2.py). New people: balanced",
+    "  0.846; LOW caught 87%, NORMAL 82%, HIGH 87%. Her original kept as fallback.",
     "Wrapper (streams/physiological/stream.py): keeps a 30 s PPG buffer,",
     "  resamples to 64 Hz, first output 30 s after start. Score = chance HR is",
-    "  outside 60-100. Quality = agreement of her two HR estimates (starting rule).",
+    "  outside 60-100. Quality = agreement of her two HR estimates (checked on",
+    "  real PPG: kept).",
     "Scenario PPG is SYNTHETIC (simulator/ppg_synth.py).",
 ]
 
@@ -129,6 +130,13 @@ def main():
     if ci.exists():
         L += ["Input check (testing/check_activity_inputs.py):"]
         L += ["  " + x for x in ci.read_text().splitlines() if x.startswith("RESULT")]
+    for fn, title in (("activity_same.txt", "WEDA-FALL, new people (leave-one-person-out):"),
+                      ("activity_cross.txt", "UMAFall, never trained on:")):
+        f = OUTS / "stage6" / fn
+        if f.exists():
+            rows = [x.strip() for x in f.read_text().splitlines()
+                    if x.strip().startswith(("accuracy", "balanced accuracy", "macro F1"))]
+            L += [title] + ["  " + r for r in rows]
     lo = OUTS / "stage6" / "activity_loso_timing.txt"
     if lo.exists():
         L += ["Timing, leave-one-person-out (testing/activity_loso_timing.py):"]
@@ -138,6 +146,11 @@ def main():
 
     # ---------------- physiological
     L += ["PHYSIOLOGICAL MODULE (Mithuna, Stage 6)", "-" * 78] + PHYSIO
+    pd_ = OUTS / "stage6" / "physio_dalia.txt"
+    if pd_.exists():
+        L += ["Real PPG, PPG-DaLiA 15 people (testing/check_physio_dalia.py):"]
+        L += ["  " + x for x in pd_.read_text().splitlines()
+              if x.startswith("RESULT") or x.startswith("VERDICT")]
     pi = OUTS / "stage6" / "physio_inputs.txt"
     if pi.exists():
         L += ["Input check (testing/check_physio_inputs.py):"]

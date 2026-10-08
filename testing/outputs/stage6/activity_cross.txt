@@ -1,0 +1,29 @@
+==============================================================================
+ACTIVITY MODULE - DATASET NEVER TRAINED ON (UMAFall)
+Trained on WEDA-FALL only, run frozen on UMAFall daily activities
+(wrist sensor). 428 recordings, 18 people, 4358 windows of 2.5 s.
+==============================================================================
+  accuracy                           38.8%
+  balanced accuracy                  40.3%
+  macro F1                           33.2%
+------------------------------------------------------------------------------
+  caught, per class:
+    LOCOMOTION                         74%   (812 windows)
+    SITTING_STANDING                   36%   (503 windows)
+    UPPER_BODY                         51%   (1776 windows)
+    OTHER                               0%   (1267 windows)
+------------------------------------------------------------------------------
+  caught, per UMAFall activity:
+    godownstairs               LOCOMOTION             66%   (41 windows)
+    goupstairs                 LOCOMOTION             97%   (30 windows)
+    jogging                    LOCOMOTION             43%   (254 windows)
+    walking                    LOCOMOTION             89%   (487 windows)
+    bending                    OTHER                   0%   (466 windows)
+    hopping                    OTHER                   0%   (388 windows)
+    lyingdown_onabed           OTHER                   1%   (413 windows)
+    sitting_gettinguponachair  SITTING_STANDING       36%   (503 windows)
+    aplausing                  UPPER_BODY             81%   (427 windows)
+    handsup                    UPPER_BODY             49%   (442 windows)
+    makingacall                UPPER_BODY             47%   (467 windows)
+    openingdoor                UPPER_BODY             29%   (440 windows)
+------------------------------------------------------------------------------

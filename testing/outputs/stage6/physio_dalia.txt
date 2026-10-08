@@ -1,0 +1,29 @@
+Physiological module on REAL PPG (PPG-DaLiA)
+
+15 people, 8612 windows of 30 s (step 15 s)
+
+1  HR ERROR (8612 windows with an estimate, of 8612)
+   all     mean abs error  16.8 bpm, median  3.4, within 5 bpm 55%
+   still   mean abs error   2.4 bpm, median  0.7, within 5 bpm 91%  (1574 windows)
+   moving  mean abs error  20.1 bpm, median  6.3, within 5 bpm 47%  (7038 windows)
+RESULT hr: mean abs error 16.8 bpm (still 2.4, moving 20.1)
+
+2  QUALITY RULE (agreement of peak and spectral HR)
+   trusted (q >= 0.5): 5338 windows (62%), mean abs error 3.3 bpm
+   rejected (q < 0.5): 3274 windows, mean abs error 38.9 bpm
+   her quality score below 0.70 in 0 windows (min 0.81)
+RESULT quality: trusted 62% with error 3.3 bpm vs rejected 38.9 bpm
+VERDICT KEEP the agreement rule (rule: trusted error at most half of rejected, trusted at least half)
+
+3  SLOW HEART RATE: 484 windows with reference below 60 bpm
+   estimate below 60 in 86%; model said LOW 100%, NORMAL 0%, HIGH 0%
+RESULT low: 484 windows below 60 bpm; model said LOW in 100%
+   (her deployed model vs reference band, IN-SAMPLE: balanced 0.918 on 8612 windows)
+
+4  TEMPERATURE
+   her indexing vs correct: mean difference 1.82 C, max 7.65 C
+   leave-one-person-out, temperature read correctly   balanced 0.848 (sd 0.092), LOW caught 87% of 484
+   leave-one-person-out, without temperature          balanced 0.846 (sd 0.087), LOW caught 87% of 484
+RESULT temperature: LOSO with temperature read correctly 0.848, without 0.846 (her table, wrong temperature: see check_physio_inputs)
+RESULT low (new people): HR below 60 caught 87% with temperature, 87% without
+time: 254 s

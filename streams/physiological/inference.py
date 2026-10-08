@@ -3,7 +3,9 @@ streams/physiological/inference.py -- Mithuna's physiological module (model infe
 Copied from github.com/Mithuna-05/guardian-physiological, src/guardian_physio/.
 Original file: models/physiological_inference.py. Changed: imports are
 relative, the model path points at this repo's models/ folder (was D:/...),
-and the result also returns the class probabilities (needed for the score).
+the result also returns the class probabilities (needed for the score), and
+the model input is built from the saved model's own feature list, so the v2
+model without skin temperature loads too.
 """
 
 from pathlib import Path
@@ -113,16 +115,10 @@ class PhysiologicalInference:
         # 5. Build model input
         # --------------------------------------------------
 
+        # The model's own feature list, in its order (her model: 7 with skin
+        # temperature; v2: 6 without). Was a fixed list of 7 (Stage 6.4).
         X = np.array(
-            [[
-                feature_values["hr"],
-                feature_values["mean_rr"],
-                feature_values["rmssd"],
-                feature_values["sdnn"],
-                feature_values["pulse_amplitude"],
-                feature_values["skin_temperature"],
-                feature_values["quality_score"],
-            ]],
+            [[feature_values[name] for name in self.features]],
             dtype=float,
         )
 

@@ -4,6 +4,7 @@
   "description": "Sitting, then a backward fall from the chair as in a faint (acted in WEDA-FALL), then 60 s still. Heart rate dips before the fall in this synthetic trace.",
   "simulated": true,
   "seconds": 90.1,
+  "clock": null,
   "truth": [
     {
       "start": 0.0,

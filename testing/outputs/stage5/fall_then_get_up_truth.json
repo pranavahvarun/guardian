@@ -4,6 +4,7 @@
   "description": "Walking, a trip fall, 8 s on the floor, then sitting, getting up and walking. The impact is flagged but stillness should not stay high.",
   "simulated": true,
   "seconds": 66.0,
+  "clock": null,
   "truth": [
     {
       "start": 0.0,
