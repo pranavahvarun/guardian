@@ -5,3 +5,4 @@ data/raw/
 
 # cached segments (rebuilt by the prep steps, large)
 *.pkl
+testing/outputs/stage6/activity_features_*.csv
