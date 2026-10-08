@@ -35,7 +35,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from data.loader import scan, iter_windows, TARGET_FS      # noqa: E402
-from streams.context import ContextStream                   # noqa: E402
+from streams.archive.context import ContextStream                   # noqa: E402
 
 SUPPRESS_STATE = "seated hand activity"
 SUPPRESS_CONF = 0.7
@@ -51,7 +51,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(
         description="Context classifier behaviour on fall records")
     ap.add_argument("--root", default=r"data\raw\UMAFall")
-    ap.add_argument("--model", default="models/context.joblib")
+    ap.add_argument("--model", default="models/archive/context.joblib")
     ap.add_argument("--csv", help="write per-record rows to this file")
     a = ap.parse_args(argv)
 

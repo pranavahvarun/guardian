@@ -728,3 +728,124 @@ TWO MORE FIXES FROM THE SECOND LIVE RUN (7 Oct 2026)
 
 STAGE 5 STATUS: DONE, except 5.4 backend API (waits for Sudharshan's
 framework). Activity module will be replaced entirely in Stage 6.
+
+==============================================================================
+PLAN FOR STAGES 6-8 (agreed 7 Oct 2026)
+==============================================================================
+Repo now on github.com/pranavahvarun/guardian (branch main). Pushing to
+Sudharshan's repo is disabled; it can still be fetched.
+
+STAGE 6 - Add the other modules (when their files arrive)
+  6.1 Run testing/check_stream.py on Mithuna's physiological module and
+      Sudharshan's activity module; fix anything that FAILs.
+  6.2 Replace the activity module completely; old one goes to
+      streams/archive/ and models/archive/.
+  6.3 Plug both into core/pipeline.py (one line each); adapt the few places
+      that read activity fields (simulator, watch, report) if names differ.
+  6.4 Agree the heart-rate fields and thresholds with Mithuna (with sources).
+  6.5 Re-run all scenarios, the live replay and the module report with the
+      real modules. Add a night_sleep scenario (long still, normal HR).
+  6.6 Log + commit.
+
+STAGE 7 - Fusion, emergency score, alerts (core/FUSION_DESIGN.md)
+  7.1 Build core/fusion.py: reads each window's stream outputs, scores every
+      emergency type with quality weighting, emergency score = highest type.
+  7.2 Alert manager: check-in, wearer cancel window, caregiver alert,
+      urgent escalation; writes to the alerts table with evidence.
+  7.3 Fix the weights on the 6 (+1) scenarios, freeze them, then test on new
+      scenarios not used for tuning.
+  7.4 Live replay with fusion: alerts appear in the database as it happens.
+  7.5 Fusion report: expected vs actual per scenario. Log + commit.
+
+STAGE 8 - Prototype website
+  8.1 Backend API in the framework Sudharshan's frontend uses (FastAPI if
+      none): login, role-based endpoints, live feed from 'guardian_live'.
+  8.2 Wearer screen: own status, check-in / cancel, SOS button.
+  8.3 Caregiver screen: linked wearers, live status, alerts with evidence,
+      acknowledge / resolve.
+  8.4 Admin screen: all wearers, runs, module stats, scenario replays.
+  8.5 Demo script: start a live scenario and walk through all three screens
+      while a fall is detected and alerted. Log + commit.
+
+==============================================================================
+STAGE 6 - ADD THE OTHER MODULES (8 Oct 2026)
+==============================================================================
+STEPS 6.1-6.3 - Sudharshan's activity module in (8 Oct 2026)
+- Source: github.com/Sudharshan-dev405/Guardian-Activity-Review-2 (zip and
+  GitHub identical). activity_v1: random forest, 300 trees, 78 features,
+  mean of the last 3 windows. 4 classes: LOCOMOTION, SITTING_STANDING,
+  OTHER, UPPER_BODY. His numbers: WEDA leave-one-person-out accuracy 80.6%,
+  balanced 74.0%; UMAFall frozen 28.6%.
+- New package streams/activity/: engine.py (his code, 3 lines changed so it
+  runs in this repo), features.py (his, unchanged), stream.py (our wrapper).
+- Wrapper converts units: his model was trained on WEDA raw units (m/s^2,
+  rad/s), our windows are g and deg/s. Without this every feature is off by
+  about x10 (acc) or x57 (gyro). Missing gyro, NaN or short window ->
+  state NO_DATA, quality 0. Score = his confidence (context, not risk).
+- Checked: wrapper gives the same states as his original code on the same
+  input (probabilities differ by under 0.001, rounding).
+- Speed: his model is set to use all CPU cores, which for one window at a
+  time costs more than it saves. One core: 59 -> about 18 ms per window.
+  Same answers.
+- check_stream activity: PASS on all checks (it would have been WARN on
+  speed before the one-core change).
+- Old activity module archived: streams/archive/context.py,
+  models/archive/context*.joblib. Imports in testing/tools, cross_dataset
+  and coursework/a7 point there now.
+- Pipeline, simulator plot, module report and README updated.
+
+THINGS FOUND IN HIS MODULE (to tell Sudharshan)
+- His UMAFall test converted acc to m/s^2 but left gyro in deg/s, so the
+  28.6% mixes a unit error with real dataset shift. Re-run with fixed units
+  in testing/check_activity_inputs.py (part B).
+- He reads UMAFall wrist as sensor ID 3; our loader uses ID 2. Part C
+  prints the file header to settle it; part B runs both.
+- His training loader trusts the bursty WEDA timestamps; ours spreads
+  samples evenly. Part A measures the effect.
+- No lying / still class. Fusion takes stillness from motion (still_s).
+- Final model trained on all 25 WEDA people, including our scenario people,
+  so activity in the scenarios is in-sample (not an evaluation).
+- Model saved with scikit-learn 1.6.1; other versions warn on load.
+
+FIRST RUN ON THE REAL DATA (8 Oct 2026)
+- check_stream all: PASS for motion, activity, physiological. Activity
+  29 ms per window on this laptop (worst 70 ms); motion 6 ms.
+- UMAFall wrist sensor settled by the data: with ID 2 the arm tasks are
+  recognised (clapping 0.995, hands up 0.94, phone call 0.95) and gait is
+  weaker; with ID 3 it is the reverse (jogging 0.95, walking 0.93, arm tasks
+  0.17-0.38). ID 3 behaves like a waist sensor. ID 2 is the wrist, as in our
+  loader. His UMAFall test used ID 3.
+- UMAFall with wrist (ID 2) and correct units: accuracy 48.2%, balanced
+  38.2% (his reported 28.6% / 28.4%). Still near zero for bending, hopping,
+  lying down (all mapped to OTHER) and sit/stand (0.07). 110 files have no
+  usable wrist data for ID 2 and were left out.
+- Timing, in-sample: his final model gives balanced 1.000 on his timing and
+  0.914 on ours. In-sample, so it only shows the inputs differ; the
+  out-of-sample effect is tested next (testing/activity_loso_timing.py).
+- Part A reported 462 "skipped" files: these were *_vertical_accel.csv files
+  caught by the glob, not lost data. Fixed in the script.
+- Part C (header) printed nothing; the header does not use those words.
+  Not needed any more: the per-activity pattern above settles it.
+- Scenarios: motion results unchanged (3.9 / 4.2 / 7.1 s). Activity during
+  still periods is not meaningful: after the falls it reads UPPER_BODY, and
+  in hr_spike_no_fall it reads LOCOMOTION while motion reports 60 s without
+  real movement. The model has no still class. Rule for fusion: when motion
+  says still, ignore the activity state. (Still periods in the scenarios are
+  synthetic, so this needs checking on real still data too.)
+
+ACTIVITY TIMING, LEAVE-ONE-PERSON-OUT (8 Oct 2026)
+- testing/activity_loso_timing.py: his 78 features and forest settings,
+  25 folds, 5573 windows. Smoothed balanced accuracy:
+    A trained and tested on his timing     0.791
+    B his timing model on our input        0.765  (what ran until now)
+    C trained and tested on our timing     0.801
+- Rule set before running: retrain if C beats B by more than 0.02.
+  C - B = +0.036 -> RETRAIN. Small gain (25 people), but it also matches how
+  the band samples (evenly) and removes the scikit-learn version warning.
+- Our run of A (raw acc 0.763) is close to his raw acc 0.769, but balanced
+  differs (raw 0.734 vs his 0.707, smoothed 0.791 vs 0.740). Cause not known;
+  his window building may differ from ours. Ask him.
+- Deployed model is now models/activity_rf_even.joblib (same features and
+  settings, all 25 people, our timing). His original stays in models/ as
+  activity_rf.joblib and is the fallback if the new file is missing.
+- Activity in the scenarios is still in-sample (all 25 people in training).

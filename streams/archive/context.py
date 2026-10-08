@@ -1,5 +1,8 @@
 """
-streams/context.py -- Guardian four-state activity context stream.
+ARCHIVED in Stage 6 (replaced by streams/activity, Sudharshan's module).
+Kept so Stage 3-5 and coursework results can be re-run. Model: models/archive/context.joblib
+
+streams/archive/context.py (was streams/context.py) -- Guardian four-state activity context stream.
 
 States: stationary, ambulating, seated hand activity, lying/immobile,
 plus "unknown" from the open-set reject.
@@ -19,9 +22,9 @@ last_state == "seated hand activity" with last_confidence > 0.7 to halve
 the motion contribution. Both attributes are set on every score() call.
 
 CLI (run from the repo root):
-    py -m streams.context --selftest
-    py -m streams.context --train data\\raw\\UMAFall --out models\\context.joblib
-    py -m streams.context --report models\\context.joblib
+    py -m streams.archive.context --selftest
+    py -m streams.archive.context --train data\\raw\\UMAFall --out models\\context.joblib
+    py -m streams.archive.context --report models\\context.joblib
 """
 
 from __future__ import annotations
@@ -499,7 +502,7 @@ def _report(model_path):
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Guardian context stream")
     ap.add_argument("--train", metavar="DIR")
-    ap.add_argument("--out", default="models/context.joblib")
+    ap.add_argument("--out", default="models/archive/context.joblib")
     ap.add_argument("--elderly", action="store_true",
                     help="widen the gait band to 0.8-2.8 Hz")
     ap.add_argument("--report", metavar="MODEL")

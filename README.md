@@ -9,9 +9,10 @@ The band senses and sends; everything below runs on the paired laptop.
 |---|---|---|
 | `contract.py` | the interface every stream follows | |
 | `data/` | dataset loaders (UMAFall, FallAllD, WEDA-FALL); `data/raw/` is not in git | Pranavah |
-| `streams/context.py` | activity module (four states + unknown) | Pranavah |
+| `streams/activity/` | activity module activity_v1 (4 classes, random forest); `stream.py` is the contract wrapper. Model in use `models/activity_rf_even.joblib` (retrained on our timing); his original is `models/activity_rf.joblib` | Sudharshan |
 | `streams/motion.py` | motion module (impact gate, impact score, stillness) | Pranavah |
 | `streams/physiological.py` | heart-rate module, placeholder | Mithuna |
+| `streams/archive/` | retired modules (old activity module `context.py`) | |
 | `core/pipeline.py` | runs every stream on each window; new modules plug in here | Pranavah |
 | `core/store.py` | saves outputs in Postgres, reads them back as a given user | Pranavah |
 | `core/watch.py` | follows live runs as a given user (terminal stand-in for the live screen) | Pranavah |
@@ -24,6 +25,7 @@ The band senses and sends; everything below runs on the paired laptop.
 | `testing/` | every experiment: model choice, tuning, cross-dataset tests | Pranavah |
 | `testing/outputs/` | results, figures, `motion_module_log.txt`, Excel, `xgboost.txt` | |
 | `testing/check_stream.py` | acceptance check a new stream module must pass before Stage 6 | Pranavah |
+| `testing/check_activity_inputs.py` | activity model: timing and unit checks on WEDA-FALL and UMAFall | Pranavah |
 | `testing/module_report.py` | one report on every module + the scenario results | Pranavah |
 | `testing/tools/` | probes and debugging tools | |
 | `testing/old/` | September notes and scratch scripts, kept for reference | |
@@ -42,14 +44,19 @@ enforces this itself (row-level security in `02_access.sql`).
 
 ## Run (from the repo root)
 
+The activity model was saved with scikit-learn 1.6.1. Other versions load it
+with a warning; `pip install scikit-learn==1.6.1` removes it.
+
+
     py -m streams.motion --selftest --model models/motion.joblib
-    py -m streams.context --selftest
+    py -m streams.activity.stream    (activity model loads)
     py testing/test_contract.py
     py -m core.pipeline              (which streams load)
     py -m simulator.run all          (replay the simulated scenarios)
     py -m simulator.run all --db     (same, and save the runs in Postgres)
     py -m core.store --check         (what each demo user can see)
     py -m testing.check_stream all   (acceptance check for every stream module)
+    py -m testing.check_activity_inputs   (activity: timing + units check)
     py -m testing.module_report      (module report + scenario overview figure)
     py -m simulator.live hard_fall_long_lie   (real-time replay into the database)
     py -m core.watch --user 5        (watch live runs as Caregiver 1, in a second terminal)

@@ -59,7 +59,7 @@ from data.loader_fallalld import (  # noqa: E402
     DEFAULT_ROOT,
 )
 
-from streams.context import (  # noqa: E402
+from streams.archive.context import (  # noqa: E402
     ContextStream,
     expected_calibration_error,
 )
@@ -582,7 +582,7 @@ def eval_context(root, matched, limit):
     )
 
     cs = ContextStream.load(
-        "models/context.joblib"
+        "models/archive/context.joblib"
     )
 
     # Rejected windows are excluded from F1 but counted and reported.

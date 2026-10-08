@@ -15,5 +15,5 @@
     impact    score      0.0  quality    0.476
 [PASS] damaged in   quality drops for empty, short or NaN windows
 [PASS] long run     241 windows (5 min), 0 broke the rules
-[PASS] speed        5.90 ms per window on average, worst 25.6 ms (pass < 50 ms)
+[PASS] speed        5.76 ms per window on average, worst 21.0 ms (pass < 50 ms)
 [PASS] pipeline     extras stored: ['gate_open', 'impact', 'moved_after_impact_s', 'movement', 'recovered', 'still_s', 'stillness', 'time_since_impact']

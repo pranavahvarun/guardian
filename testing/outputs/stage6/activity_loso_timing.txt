@@ -1,0 +1,13 @@
+Activity model, leave-one-person-out, his features and RF settings
+windows: his timing 5573, our timing 5573 (files dropped: 0, 0)
+
+                                                         raw RF     smoothed (3 windows)
+  condition                                 acc    bal     F1      acc    bal     F1
+  A train his timing, test his timing     0.763  0.734  0.720    0.812  0.791  0.777
+  B train his timing, test our timing     0.753  0.717  0.707    0.794  0.765  0.755
+  C train our timing, test our timing     0.776  0.744  0.732    0.823  0.801  0.788
+
+  his reported numbers: raw acc 0.769 bal 0.707 F1 0.716; smoothed acc 0.806 bal 0.740 F1 0.756
+RESULT loso: smoothed balanced A 0.791, B 0.765, C 0.801 (C - B = +0.036)
+VERDICT RETRAIN on our timing (C beats B by more than 0.02 balanced)
+time: 241 s

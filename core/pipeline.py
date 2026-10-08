@@ -34,7 +34,7 @@ sys.path.insert(0, str(ROOT))
 # name: (module, class, saved model or None). Stage 6 swaps or adds lines here.
 STREAMS = {
     "motion": ("streams.motion", "MotionStream", "models/motion.joblib"),
-    "activity": ("streams.context", "ContextStream", "models/context.joblib"),
+    "activity": ("streams.activity", "ActivityStream", "models/activity_rf_even.joblib"),
     "physiological": ("streams.physiological", "PhysiologicalStream", None),
 }
 

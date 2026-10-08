@@ -164,7 +164,11 @@ def _plot(sc, D, thr):
     a = D[D.stream == "activity"]
     if len(a):
         _, st = _ex(D, "activity", "state")
-        names = ["stationary", "ambulating", "seated hand activity", "lying/immobile", "unknown"]
+        try:
+            names = json.loads((ROOT / "models" / "activity_config.json").read_text())["classes"]
+        except Exception:                                         # noqa: BLE001
+            names = sorted({s for s in st if s})
+        names = list(names) + ["NO_DATA"]
         y = [names.index(s) if s in names else len(names) - 1 for s in st]
         ax[2].scatter(a.t, y, s=10, c=a.quality, cmap="Greens", vmin=0, vmax=1,
                       edgecolors="#888", linewidths=0.3)

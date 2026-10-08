@@ -1,0 +1,40 @@
+Activity module input check (Stage 6.1)
+model note: model saved with scikit-learn 1.6.1 (his pin); loaded with a different version
+
+A  TIMING on WEDA-FALL ADLs (D01-D11, all people; IN-SAMPLE)
+   timing        accuracy  balanced  windows  skipped
+   timestamps       1.000     1.000     5573      462   (his loader)
+   even             0.940     0.914     5573      462   (our loader)
+RESULT timing: balanced accuracy his timing 1.000, ours 0.914 (gap +0.086, in-sample)
+
+C  UMAFall header of UMAFall_Subject_01_ADL_Aplausing_1_2017-04-14_23-38-23.csv (lines that name a sensor position):
+
+B  UMAFall ADLs, sensor ID 2: accuracy 0.482, balanced 0.382, 4358 windows, 110 files skipped
+     aplausing                     0.995  (427 windows)
+     bending                       0.000  (466 windows)
+     godownstairs                  0.463  (41 windows)
+     goupstairs                    0.933  (30 windows)
+     handsup                       0.937  (442 windows)
+     hopping                       0.000  (388 windows)
+     jogging                       0.272  (254 windows)
+     lyingdown_onabed              0.000  (413 windows)
+     makingacall                   0.953  (467 windows)
+     openingdoor                   0.768  (440 windows)
+     sitting_gettinguponachair     0.074  (503 windows)
+     walking                       0.667  (487 windows)
+RESULT UMAFall (units fixed) sensor 2: accuracy 0.482, balanced 0.382 (his reported 0.286 / 0.284)
+B  UMAFall ADLs, sensor ID 3: accuracy 0.386, balanced 0.401, 5481 windows, 0 files skipped
+     aplausing                     0.689  (431 windows)
+     bending                       0.010  (599 windows)
+     godownstairs                  0.771  (201 windows)
+     goupstairs                    0.817  (202 windows)
+     handsup                       0.281  (441 windows)
+     hopping                       0.041  (537 windows)
+     jogging                       0.954  (282 windows)
+     lyingdown_onabed              0.070  (585 windows)
+     makingacall                   0.379  (470 windows)
+     openingdoor                   0.169  (443 windows)
+     sitting_gettinguponachair     0.293  (652 windows)
+     walking                       0.929  (638 windows)
+RESULT UMAFall (units fixed) sensor 3: accuracy 0.386, balanced 0.401 (his reported 0.286 / 0.284)
+

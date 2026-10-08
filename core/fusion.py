@@ -4,7 +4,7 @@ core/fusion.py -- combines the evidence streams into one decision. PLACEHOLDER.
 Owner: Pranavah. Designed, not built (Stage 7).
 Full design: core/FUSION_DESIGN.md
 
-Inputs (one set per window): activity (streams/context.py), motion
+Inputs (one set per window): activity (streams/activity), motion
 (streams/motion.py), physiological (streams/physiological.py), and context
 derived from those three. Each gives a score in [0, 1] and a quality.
 

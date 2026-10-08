@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from data.loader import read_umafall, iter_windows          # noqa: E402
-from streams.context import ContextStream                    # noqa: E402
+from streams.archive.context import ContextStream                    # noqa: E402
 from streams.motion import MotionStream                      # noqa: E402
 
 SUPPRESS_STATE = "seated hand activity"
@@ -41,7 +41,7 @@ def _reader(dataset):
     return read_umafall, iter_windows
 
 
-def trace(path, ctx_model="models/context.joblib", mot_model="models/motion.joblib",
+def trace(path, ctx_model="models/archive/context.joblib", mot_model="models/motion.joblib",
           dataset="umafall"):
     path = Path(path)
     ctx = ContextStream.load(ctx_model)
@@ -98,7 +98,7 @@ def main(argv=None):
                     default="umafall",
                     help="which loader to use; fallalld also changes the "
                          "default root and glob suffix")
-    ap.add_argument("--context", default="models/context.joblib")
+    ap.add_argument("--context", default="models/archive/context.joblib")
     ap.add_argument("--motion", default="models/motion.joblib")
     ap.add_argument("--all", action="store_true",
                     help="trace every file matching --glob, summary only")

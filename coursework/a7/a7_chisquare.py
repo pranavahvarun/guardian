@@ -14,11 +14,11 @@ from scipy.stats import chi2_contingency
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))   # repo root
 
 from data.loader import scan, iter_windows, TARGET_FS
-from streams.context import ContextStream
+from streams.archive.context import ContextStream
 
 SUPPRESS_STATE = "seated hand activity"   # context_on_falls.py
 SUPPRESS_CONF = 0.7                       # context_on_falls.py
-MODEL = "models/context.joblib"
+MODEL = "models/archive/context.joblib"
 DIRECTIONS = ("forward", "backward", "lateral")
 OUT_DIR = Path(__file__).resolve().parent / "a7_outputs"
 

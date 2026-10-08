@@ -27,18 +27,25 @@ S5, FIG = OUTS / "stage5", OUTS / "figures"
 SCEN = ["normal_day", "hard_fall_long_lie", "fall_then_get_up", "faint_collapse",
         "false_alarm", "hr_spike_no_fall"]
 
-# Activity numbers come from the activity module's own evaluation (UMAFall,
-# subject-disjoint holdout) and the FallAllD transfer check. Kept here as text
-# because that module is being replaced in Stage 6.
+# Activity numbers are Sudharshan's own (his repo, results/ and his results
+# summary). The input check line comes from testing/check_activity_inputs.py.
 ACTIVITY = [
-    "Four states + 'unknown' (open-set reject), 15 features, random forest,",
-    "temperature-scaled confidence.",
-    "UMAFall, people not seen in training: macro F1 0.71, accuracy 0.73",
-    "  per state: ambulating 0.90, seated hand activity 0.75, lying/immobile 0.70,",
-    "  stationary 0.51 (sitting vs standing is mostly forearm tilt at the wrist)",
-    "FallAllD, unchanged model: macro F1 0.22, calibration error 0.377 (confidently wrong)",
-    "Stage 5 simulation: flips state every 1-3 s on WEDA-FALL data.",
-    "STATUS: being replaced by Sudharshan's activity module in Stage 6.",
+    "Sudharshan's activity_v1: 4 classes (LOCOMOTION, SITTING_STANDING, OTHER,",
+    "  UPPER_BODY), 78 features, random forest (300 trees), mean of last 3 windows.",
+    "  No lying/still class: stillness comes from the motion module.",
+    "WEDA-FALL, leave-one-person-out (25 people): accuracy 80.6%, balanced 74.0%,",
+    "  macro F1 75.6% (his numbers).",
+    "UMAFall, frozen model: accuracy 28.6% (his numbers). Walking and stairs",
+    "  transfer well; bending, sit/stand, lying down and hands up mostly do not.",
+    "  His UMAFall run left the gyroscope in deg/s (model expects rad/s), so this",
+    "  number mixes a unit error with real dataset shift. To be re-run.",
+    "Caveat: the final model is trained on all 25 WEDA people, including the",
+    "  people in our scenarios, so activity output in the scenarios is in-sample.",
+    "Model in use: his features and settings retrained on our evenly spaced",
+    "  windows (models/activity_rf_even.joblib), because the band samples evenly",
+    "  and this scored higher leave-one-person-out (below).",
+    "Wrapper (streams/activity/stream.py): converts g -> m/s^2 and deg/s -> rad/s,",
+    "  quality 0 on missing gyro, NaN, or short windows.",
 ]
 
 
@@ -99,7 +106,17 @@ def main():
               "  real band needs its own. Scores swing up to 0.05 with 18 training people.", ""]
 
     # ---------------- activity
-    L += ["ACTIVITY MODULE (current version)", "-" * 78] + ACTIVITY + [""]
+    L += ["ACTIVITY MODULE (Sudharshan, Stage 6)", "-" * 78] + ACTIVITY
+    ci = OUTS / "stage6" / "activity_inputs.txt"
+    if ci.exists():
+        L += ["Input check (testing/check_activity_inputs.py):"]
+        L += ["  " + x for x in ci.read_text().splitlines() if x.startswith("RESULT")]
+    lo = OUTS / "stage6" / "activity_loso_timing.txt"
+    if lo.exists():
+        L += ["Timing, leave-one-person-out (testing/activity_loso_timing.py):"]
+        L += ["  " + x for x in lo.read_text().splitlines()
+              if x.startswith("RESULT") or x.startswith("VERDICT")]
+    L.append("")
 
     # ---------------- physiological
     L += ["PHYSIOLOGICAL MODULE (Mithuna)", "-" * 78,

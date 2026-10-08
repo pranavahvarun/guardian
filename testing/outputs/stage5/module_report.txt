@@ -20,16 +20,31 @@ Stage 4: looking 3 s after the impact instead of 1.5 s was kept; on all
 Limits: thresholds tuned on one device do not carry over to another; the
   real band needs its own. Scores swing up to 0.05 with 18 training people.
 
-ACTIVITY MODULE (current version)
+ACTIVITY MODULE (Sudharshan, Stage 6)
 ------------------------------------------------------------------------------
-Four states + 'unknown' (open-set reject), 15 features, random forest,
-temperature-scaled confidence.
-UMAFall, people not seen in training: macro F1 0.71, accuracy 0.73
-  per state: ambulating 0.90, seated hand activity 0.75, lying/immobile 0.70,
-  stationary 0.51 (sitting vs standing is mostly forearm tilt at the wrist)
-FallAllD, unchanged model: macro F1 0.22, calibration error 0.377 (confidently wrong)
-Stage 5 simulation: flips state every 1-3 s on WEDA-FALL data.
-STATUS: being replaced by Sudharshan's activity module in Stage 6.
+Sudharshan's activity_v1: 4 classes (LOCOMOTION, SITTING_STANDING, OTHER,
+  UPPER_BODY), 78 features, random forest (300 trees), mean of last 3 windows.
+  No lying/still class: stillness comes from the motion module.
+WEDA-FALL, leave-one-person-out (25 people): accuracy 80.6%, balanced 74.0%,
+  macro F1 75.6% (his numbers).
+UMAFall, frozen model: accuracy 28.6% (his numbers). Walking and stairs
+  transfer well; bending, sit/stand, lying down and hands up mostly do not.
+  His UMAFall run left the gyroscope in deg/s (model expects rad/s), so this
+  number mixes a unit error with real dataset shift. To be re-run.
+Caveat: the final model is trained on all 25 WEDA people, including the
+  people in our scenarios, so activity output in the scenarios is in-sample.
+Model in use: his features and settings retrained on our evenly spaced
+  windows (models/activity_rf_even.joblib), because the band samples evenly
+  and this scored higher leave-one-person-out (below).
+Wrapper (streams/activity/stream.py): converts g -> m/s^2 and deg/s -> rad/s,
+  quality 0 on missing gyro, NaN, or short windows.
+Input check (testing/check_activity_inputs.py):
+  RESULT timing: balanced accuracy his timing 1.000, ours 0.914 (gap +0.086, in-sample)
+  RESULT UMAFall (units fixed) sensor 2: accuracy 0.482, balanced 0.382 (his reported 0.286 / 0.284)
+  RESULT UMAFall (units fixed) sensor 3: accuracy 0.386, balanced 0.401 (his reported 0.286 / 0.284)
+Timing, leave-one-person-out (testing/activity_loso_timing.py):
+  RESULT loso: smoothed balanced A 0.791, B 0.765, C 0.801 (C - B = +0.036)
+  VERDICT RETRAIN on our timing (C beats B by more than 0.02 balanced)
 
 PHYSIOLOGICAL MODULE (Mithuna)
 ------------------------------------------------------------------------------
@@ -38,8 +53,7 @@ scenarios is synthetic.
 
 ACCEPTANCE CHECK (testing/check_stream.py)
 ------------------------------------------------------------------------------
-  activity: WARN
-    [WARN] speed        79.39 ms per window on average, worst 148.5 ms (pass < 50 ms)
+  activity: PASS
   motion: PASS
   physiological: PASS
 
