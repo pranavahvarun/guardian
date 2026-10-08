@@ -849,3 +849,45 @@ ACTIVITY TIMING, LEAVE-ONE-PERSON-OUT (8 Oct 2026)
   settings, all 25 people, our timing). His original stays in models/ as
   activity_rf.joblib and is the fallback if the new file is missing.
 - Activity in the scenarios is still in-sample (all 25 people in training).
+
+STEP 6.4 - Mithuna's physiological module in (8 Oct 2026)
+- Source: github.com/Mithuna-05/guardian-physiological (zip). Wrist PPG at
+  64 Hz, 30 s windows (step 15 s) from PPG-DaLiA, 15 people. Heart rate from
+  peak counting and spectrum, HRV (mean RR, RMSSD, SDNN), pulse amplitude,
+  skin temperature, a quality score, then XGBoost (200 trees, depth 4).
+  Her numbers: LOSO balanced 77.2% (sd 13.9); HR error 16.9 bpm mean,
+  55% within 5 bpm.
+- New package streams/physiological/: her ppg.py, quality.py, hr.py
+  (unchanged), features.py and inference.py (imports made relative, D:/
+  paths removed, probabilities returned), stream.py (our wrapper).
+  Placeholder archived to streams/archive/physiological_placeholder.py.
+- Our windows had no PPG. contract.py now has "ppg" and "ppg_fs". The
+  wrapper keeps a 30 s buffer (only the new half of each overlapping window
+  is added), resamples to 64 Hz, first output 30 s after start.
+- Scenarios now carry SYNTHETIC PPG (simulator/ppg_synth.py): pulse shape
+  driven by the scripted HR, 100 Hz (band target), artefact when the wrist
+  moves. Tests the plumbing only, not accuracy on real PPG.
+- check_stream physiological: PASS (about 5 ms per window).
+
+THINGS FOUND IN HER MODULE (to tell Mithuna)
+- Class names do not match the bands: her "Normal" is reference HR < 60,
+  "Elevated" is 60-100 (the usual resting range), "Abnormal" > 100.
+  Renamed in our wrapper to LOW / NORMAL / HIGH. They are HR bands, not
+  diagnoses.
+- The model never picks LOW. HR sweep on synthetic PPG: 40-58 bpm came out
+  NORMAL or HIGH (50-58 bpm -> HIGH). In her table, when her estimated HR
+  was below 60 the reference was above 60 in 84% of windows (above 100 in
+  30%): her estimator under-reads during exercise, so the model learned
+  "low reading = estimator error". A real slow heart rate (faint) would be
+  missed. Live in our faint scenario: 52 bpm shown as HIGH.
+- Her quality score never went below 0.81 on her data (it is computed after
+  the signal is normalised), so the POOR gate never fires. Our wrapper uses
+  agreement of her two HR estimates instead (starting rule, not validated).
+- Skin temperature: DaLiA wrist TEMP is 4 Hz but her code indexes it as if
+  1 Hz, so temperatures come from the wrong time. Dropping temperature:
+  LOSO 0.848 vs 0.826 with it (within the spread, sd about 0.09). It is
+  also required: no temperature -> no output.
+- Plain 60/100 thresholds on her estimated HR: 0.664 balanced. HR alone in
+  XGBoost: 0.784. All 7 features: 0.826. Most of the gain is the model
+  correcting her HR estimator.
+- 30 s window: the estimate lags fast changes by about 15 s (faint scenario).

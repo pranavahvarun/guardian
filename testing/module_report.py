@@ -38,7 +38,8 @@ ACTIVITY = [
     "UMAFall, frozen model: accuracy 28.6% (his numbers). Walking and stairs",
     "  transfer well; bending, sit/stand, lying down and hands up mostly do not.",
     "  His UMAFall run left the gyroscope in deg/s (model expects rad/s), so this",
-    "  number mixes a unit error with real dataset shift. To be re-run.",
+    "  number mixes a unit error with real dataset shift. He also read the waist",
+    "  sensor (ID 3). Re-run with the wrist (ID 2) and right units: see below.",
     "Caveat: the final model is trained on all 25 WEDA people, including the",
     "  people in our scenarios, so activity output in the scenarios is in-sample.",
     "Model in use: his features and settings retrained on our evenly spaced",
@@ -46,6 +47,23 @@ ACTIVITY = [
     "  and this scored higher leave-one-person-out (below).",
     "Wrapper (streams/activity/stream.py): converts g -> m/s^2 and deg/s -> rad/s,",
     "  quality 0 on missing gyro, NaN, or short windows.",
+]
+
+
+# Physiological numbers are Mithuna's own (her repo README and data/), plus
+# what the wrapper and the input check found.
+PHYSIO = [
+    "Mithuna's module: wrist PPG -> filter -> heart rate (peaks + spectrum) ->",
+    "  HRV (mean RR, RMSSD, SDNN), pulse amplitude, skin temperature, quality",
+    "  -> XGBoost (200 trees, depth 4) on 30 s windows of PPG-DaLiA (15 people).",
+    "Classes are heart-rate bands from the reference HR, not diagnoses. Renamed",
+    "  in the wrapper: LOW (<60), NORMAL (60-100), HIGH (>100) bpm.",
+    "Her numbers: leave-one-person-out balanced accuracy 77.2% (sd 13.9);",
+    "  HR error 16.9 bpm mean, 55% of windows within 5 bpm (8612 windows).",
+    "Wrapper (streams/physiological/stream.py): keeps a 30 s PPG buffer,",
+    "  resamples to 64 Hz, first output 30 s after start. Score = chance HR is",
+    "  outside 60-100. Quality = agreement of her two HR estimates (starting rule).",
+    "Scenario PPG is SYNTHETIC (simulator/ppg_synth.py).",
 ]
 
 
@@ -78,7 +96,7 @@ def main():
     cfg_p = OUTS / "stage4" / "final_config.json"
     cfg = json.loads(cfg_p.read_text()) if cfg_p.exists() else {}
     thr = cfg.get("threshold")
-    L = ["GUARDIAN - MODULE REPORT (Stage 5)", "=" * 78, ""]
+    L = ["GUARDIAN - MODULE REPORT (Stage 6)", "=" * 78, ""]
 
     # ---------------- motion
     p = cfg.get("params", {})
@@ -119,9 +137,12 @@ def main():
     L.append("")
 
     # ---------------- physiological
-    L += ["PHYSIOLOGICAL MODULE (Mithuna)", "-" * 78,
-          "Placeholder: returns 0 with quality 0 until Stage 6. Heart rate in the",
-          "scenarios is synthetic.", ""]
+    L += ["PHYSIOLOGICAL MODULE (Mithuna, Stage 6)", "-" * 78] + PHYSIO
+    pi = OUTS / "stage6" / "physio_inputs.txt"
+    if pi.exists():
+        L += ["Input check (testing/check_physio_inputs.py):"]
+        L += ["  " + x for x in pi.read_text().splitlines() if x.startswith("RESULT")]
+    L.append("")
 
     # ---------------- acceptance checks
     checks = sorted(S5.glob("check_*.txt"))

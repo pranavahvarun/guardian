@@ -35,7 +35,7 @@ sys.path.insert(0, str(ROOT))
 STREAMS = {
     "motion": ("streams.motion", "MotionStream", "models/motion.joblib"),
     "activity": ("streams.activity", "ActivityStream", "models/activity_rf_even.joblib"),
-    "physiological": ("streams.physiological", "PhysiologicalStream", None),
+    "physiological": ("streams.physiological", "PhysiologicalStream", "models/physiological_xgb.joblib"),
 }
 
 EXTRA_ATTRS = ("gate_open", "time_since_impact")      # besides every last_*

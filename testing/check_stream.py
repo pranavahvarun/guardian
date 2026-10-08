@@ -17,7 +17,10 @@ Checks
     4 windows      on 10 normal and awkward windows: no crash, score and
                    last_quality are numbers in [0, 1]
     4b damaged in  empty, too-short or NaN windows must not get full quality
-    5 long run     5 minutes of windows in a row: still within the rules
+                   (each case is one fresh window, so a stream that needs a
+                   buffer, like physiological, gives quality 0 for all of them)
+    5 long run     5 minutes of windows in a row: still within the rules, and
+                   how many windows had quality above 0 (WARN if none)
     6 speed        mean time per window (budget: windows arrive every 1.24 s,
                    shared by all streams)
     7 pipeline     plugs into core/pipeline.py and its extras save as JSON
@@ -44,9 +47,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from contract import Stream  # noqa: E402
 from core.pipeline import STREAMS, Pipeline  # noqa: E402
+from simulator.ppg_synth import at_times  # noqa: E402
 
 OUT = ROOT / "testing" / "outputs" / "stage5"
 FS, N, HOP = 50, 125, 62
+PPG_FS = 100                      # synthetic PPG for the physiological stream
 SPEED_PASS_MS, SPEED_WARN_MS = 50.0, 200.0
 
 
@@ -55,25 +60,28 @@ def _window(t=0.0, kind="normal", rng=np.random.default_rng(0)):
                            1 + rng.normal(0, .05, N)])
     gyro = rng.normal(0, 10, (N, 3))
     hr, temp = 75.0, 33.2
-    if kind == "no_hr":
-        hr = temp = None
-    elif kind == "no_gyro":
-        gyro = None
-    elif kind == "empty":
-        acc, gyro = np.zeros((0, 3)), np.zeros((0, 3))
-    elif kind == "short":
-        acc, gyro = acc[:10], gyro[:10]
-    elif kind == "nan":
-        acc[40:50] = np.nan
-    elif kind == "huge":
-        acc[60:65] = 16.0
-    elif kind == "hr_high":
+    if kind == "hr_high":
         hr = 220.0
     elif kind == "hr_low":
         hr = 25.0
+    ppg = at_times(t + np.arange(int(N / FS * PPG_FS)) / PPG_FS, hr)
+    if kind == "no_hr":
+        hr = temp = ppg = None
+    elif kind == "no_gyro":
+        gyro = None
+    elif kind == "empty":
+        acc, gyro, ppg = np.zeros((0, 3)), np.zeros((0, 3)), np.zeros(0)
+    elif kind == "short":
+        acc, gyro, ppg = acc[:10], gyro[:10], ppg[:10]
+    elif kind == "nan":
+        acc[40:50] = np.nan
+        ppg[80:100] = np.nan
+    elif kind == "huge":
+        acc[60:65] = 16.0
     elif kind == "impact":
         acc[60:66] += np.array([4.0, 3.0, 5.0])
-    return {"t": float(t), "acc": acc, "gyro": gyro, "hr": hr, "temp": temp, "fs": FS}
+    return {"t": float(t), "acc": acc, "gyro": gyro, "hr": hr, "temp": temp,
+            "ppg": ppg, "ppg_fs": None if ppg is None else PPG_FS, "fs": FS}
 
 
 DAMAGED = ("empty", "short", "nan")
@@ -154,7 +162,7 @@ def check(target, model=None):
     # 5 long run + 6 speed
     try:
         sl = C.load(str(ROOT / model)) if model and (ROOT / model).exists() else C()
-        times, broke = [], 0
+        times, broke, live = [], 0, 0
         n_win = int(300 / (HOP / FS))
         for i in range(n_win):
             w = _window(t=i * HOP / FS, kind="impact" if i == n_win // 2 else "normal")
@@ -162,8 +170,12 @@ def check(target, model=None):
             sc = sl.score(w)
             times.append((time.perf_counter() - t0) * 1000)
             broke += not (_ok01(sc) and _ok01(getattr(sl, "last_quality", None)))
+            live += (getattr(sl, "last_quality", 0) or 0) > 0
         add("long run", "FAIL" if broke else "PASS",
-            f"{n_win} windows (5 min), {broke} broke the rules")
+            f"{n_win} windows (5 min), {broke} broke the rules, "
+            f"{live} with quality above 0")
+        if live == 0:
+            add("output", "WARN", "quality stayed 0 for 5 min of normal input")
         ms = float(np.mean(times))
         st = "PASS" if ms < SPEED_PASS_MS else "WARN" if ms < SPEED_WARN_MS else "FAIL"
         add("speed", st, f"{ms:.2f} ms per window on average, worst {max(times):.1f} ms "

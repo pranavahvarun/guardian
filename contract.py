@@ -13,6 +13,8 @@ Produced by data/loader.py, one dict per replay time step:
         "gyro": np.ndarray,     # shape (N, 3), deg/s
         "hr":   float | None,   # bpm, scripted trace
         "temp": float | None,   # degrees C, scripted
+        "ppg":  np.ndarray | None,  # (M,) raw PPG for the same 2.5 s (Stage 6.4)
+        "ppg_fs": float | None, # Hz of ppg (band target about 100 Hz)
         "fs":   50,             # Hz
     }
 

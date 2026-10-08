@@ -11,14 +11,14 @@ The band senses and sends; everything below runs on the paired laptop.
 | `data/` | dataset loaders (UMAFall, FallAllD, WEDA-FALL); `data/raw/` is not in git | Pranavah |
 | `streams/activity/` | activity module activity_v1 (4 classes, random forest); `stream.py` is the contract wrapper. Model in use `models/activity_rf_even.joblib` (retrained on our timing); his original is `models/activity_rf.joblib` | Sudharshan |
 | `streams/motion.py` | motion module (impact gate, impact score, stillness) | Pranavah |
-| `streams/physiological.py` | heart-rate module, placeholder | Mithuna |
-| `streams/archive/` | retired modules (old activity module `context.py`) | |
+| `streams/physiological/` | heart-rate module (PPG -> HR, HRV, XGBoost heart-rate band); `stream.py` is the contract wrapper. Model `models/physiological_xgb.joblib` | Mithuna |
+| `streams/archive/` | retired modules (old activity module `context.py`, physiological placeholder) | |
 | `core/pipeline.py` | runs every stream on each window; new modules plug in here | Pranavah |
 | `core/store.py` | saves outputs in Postgres, reads them back as a given user | Pranavah |
 | `core/watch.py` | follows live runs as a given user (terminal stand-in for the live screen) | Pranavah |
 | `core/fusion.py` | fusion and decision manager, placeholder | Pranavah |
 | `core/FUSION_DESIGN.md` | fusion design: inputs, emergency types, score, alert levels, expected results | Pranavah |
-| `simulator/` | SIMULATED scenarios (real WEDA-FALL motion + synthetic heart rate); `live.py` plays them in real time | Pranavah |
+| `simulator/` | SIMULATED scenarios (real WEDA-FALL motion + synthetic heart rate and PPG); `live.py` plays them in real time | Pranavah |
 | `backend/db/init/` | database tables, role-based access rules, demo users | Pranavah |
 | `frontend/` | web prototype, three roles, placeholder | Sudharshan |
 | `models/` | models in use; older ones in `models/archive/` | |
@@ -26,6 +26,8 @@ The band senses and sends; everything below runs on the paired laptop.
 | `testing/outputs/` | results, figures, `motion_module_log.txt`, Excel, `xgboost.txt` | |
 | `testing/check_stream.py` | acceptance check a new stream module must pass before Stage 6 | Pranavah |
 | `testing/check_activity_inputs.py` | activity model: timing and unit checks on WEDA-FALL and UMAFall | Pranavah |
+| `testing/check_physio_inputs.py` | physiological model: heart-rate sweep on synthetic PPG, checks on her training table | Pranavah |
+| `testing/data/` | small derived tables kept in git (Mithuna's PPG-DaLiA feature table) | |
 | `testing/module_report.py` | one report on every module + the scenario results | Pranavah |
 | `testing/tools/` | probes and debugging tools | |
 | `testing/old/` | September notes and scratch scripts, kept for reference | |
@@ -57,6 +59,7 @@ with a warning; `pip install scikit-learn==1.6.1` removes it.
     py -m core.store --check         (what each demo user can see)
     py -m testing.check_stream all   (acceptance check for every stream module)
     py -m testing.check_activity_inputs   (activity: timing + units check)
+    py -m testing.check_physio_inputs     (physiological: HR sweep + training-table checks)
     py -m testing.module_report      (module report + scenario overview figure)
     py -m simulator.live hard_fall_long_lie   (real-time replay into the database)
     py -m core.watch --user 5        (watch live runs as Caregiver 1, in a second terminal)

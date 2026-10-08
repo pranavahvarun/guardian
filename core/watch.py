@@ -45,6 +45,10 @@ def snapshot(uid, threshold):
                              f"moved again {rec}{flag}")
             if "activity" in rows:
                 parts.append(f"activity {rows['activity'][2].get('state', '?')}")
+            if "physiological" in rows:
+                ex = rows["physiological"][2]
+                parts.append(f"heart {ex.get('state', '?')}"
+                             + (f" {ex['hr']:.0f} bpm" if ex.get("hr") else ""))
             out.append("  |  ".join(parts))
     return out
 

@@ -1,5 +1,6 @@
 """
-streams/physiological.py -- heart-rate stream. PLACEHOLDER.
+streams/archive/physiological_placeholder.py -- ARCHIVED in Stage 6 (replaced by
+streams/physiological, Mithuna's module). Was streams/physiological.py, a PLACEHOLDER.
 
 Owner: Mithuna. Not built yet.
 
@@ -21,7 +22,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from contract import Stream  # noqa: E402
 
 

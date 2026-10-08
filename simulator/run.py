@@ -113,8 +113,19 @@ def _summary(sc, D, thr):
         lines.append("activity: " + " -> ".join(runs[:12]) + (" ..." if len(runs) > 12 else ""))
     p = D[D.stream == "physiological"]
     if len(p):
-        lines.append(f"physiological: mean quality {p.quality.mean():.2f}"
-                     + ("  (placeholder until Stage 6)" if p.quality.max() == 0 else ""))
+        t, st = _ex(D, "physiological", "state")
+        _, hr = _ex(D, "physiological", "hr")
+        runs, prev = [], None
+        for ti, s, h in zip(t, st, hr):
+            if s != prev:
+                runs.append(f"{ti:.0f}s {s}" + (f" ({h:.0f} bpm)" if h is not None else ""))
+                prev = s
+        lines.append("physiological: " + " -> ".join(runs[:10]) + (" ..." if len(runs) > 10 else ""))
+        ok = p[p.quality > 0]
+        if len(ok):
+            lines.append(f"physiological: first output at {ok.t.values[0]:.0f} s, "
+                         f"mean quality {ok.quality.mean():.2f}, "
+                         f"score (HR outside 60-100) max {ok.score.max():.2f}")
     return "\n".join(lines)
 
 
@@ -176,7 +187,14 @@ def _plot(sc, D, thr):
         ax[2].set_yticklabels(names, fontsize=7)
     ax[2].set_ylabel("activity")
 
-    ax[3].plot(t_sig, sc.hr, lw=0.8, color="#8e44ad")
+    ax[3].plot(t_sig, sc.hr, lw=0.8, color="#8e44ad", label="HR in the scenario (synthetic)")
+    p = D[D.stream == "physiological"]
+    if len(p):
+        tp_, hr_ = _ex(D, "physiological", "hr")
+        hr_ = np.array([np.nan if h is None else h for h in hr_], float)
+        ax[3].plot(np.asarray(tp_) + 2.5, hr_, "o", ms=3, color="#e67e22",
+                   label="HR estimated by the physiological stream")
+        ax[3].legend(fontsize=7, loc="upper left")
     ax[3].set_ylabel("HR (bpm)\nsynthetic")
     ax[3].set_xlabel("time (s)")
     fig.tight_layout()

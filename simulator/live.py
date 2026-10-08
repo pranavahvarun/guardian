@@ -44,6 +44,10 @@ def _line(rows, thr):
                      f"moved again {rec:3s}{flag}")
     if a:
         parts.append(f"activity {a['extras'].get('state', '?')}")
+    p = by.get("physiological")
+    if p:
+        hr = p["extras"].get("hr")
+        parts.append(f"heart {p['extras'].get('state', '?')}" + (f" {hr:.0f} bpm" if hr else ""))
     return "  |  ".join(parts)
 
 

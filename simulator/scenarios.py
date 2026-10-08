@@ -11,6 +11,10 @@ How a scenario is made:
   after the fall, so a long lie has to be made up.
 - Heart rate and skin temperature are SYNTHETIC traces with illustrative
   values. They are not clinical thresholds and not measured data.
+- PPG (Stage 6.4) is SYNTHETIC too: a textbook pulse shape driven by the
+  heart-rate trace, at 100 Hz, with artefact wherever the wrist moves
+  (simulator/ppg_synth.py). It lets the physiological stream run; it says
+  nothing about how well that stream works on real PPG.
 
 Every scenario carries simulated=True and a ground-truth timeline. The truth
 never goes to the streams; it is only used to draw and check results.
@@ -27,6 +31,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from data import loader_weda as weda  # noqa: E402
 from data.loader import HOP_N, TARGET_FS, WINDOW_N  # noqa: E402
+from simulator import ppg_synth  # noqa: E402
 
 FS = TARGET_FS
 FADE = int(0.5 * FS)
@@ -45,18 +50,27 @@ class Scenario:
     truth: list = field(default_factory=list)    # segments
     events: list = field(default_factory=list)   # {"t", "what"}
     simulated: bool = True
+    ppg: np.ndarray | None = None       # (M,) synthetic, at ppg_fs
+    ppg_fs: int = ppg_synth.PPG_FS
 
     @property
     def seconds(self) -> float:
         return len(self.acc) / FS
 
     def windows(self):
-        """contract.py windows, 2.5 s every 1.24 s. HR/temp = value at window end."""
+        """contract.py windows, 2.5 s every 1.24 s. HR/temp = value at window end.
+        ppg = the same 2.5 s of synthetic PPG at ppg_fs."""
+        pw = int(round(WINDOW_N / FS * self.ppg_fs))
         for start in range(0, len(self.acc) - WINDOW_N + 1, HOP_N):
             stop = start + WINDOW_N
+            p0 = int(round(start / FS * self.ppg_fs))
+            ppg = None
+            if self.ppg is not None and p0 + pw <= len(self.ppg):
+                ppg = self.ppg[p0:p0 + pw]
             yield {"t": start / FS, "acc": self.acc[start:stop],
                    "gyro": self.gyro[start:stop],
                    "hr": float(self.hr[stop - 1]), "temp": float(self.temp[stop - 1]),
+                   "ppg": ppg, "ppg_fs": self.ppg_fs if ppg is not None else None,
                    "fs": FS}
 
 
@@ -144,8 +158,14 @@ class Builder:
         hr = self.trace([(0, hr_points[0][1])] + hr_points + [(end, hr_points[-1][1])], 1.5)
         temp_points = temp_points or [(0, 33.2), (end, 33.4)]
         temp = self.trace(temp_points, 0.05)
+        pfs = ppg_synth.PPG_FS
+        tp = np.arange(int(len(self.acc) / FS * pfs)) / pfs
+        t50 = np.arange(len(self.acc)) / FS
+        ppg = ppg_synth.from_hr(np.interp(tp, t50, hr), pfs,
+                                acc_mag=np.interp(tp, t50, np.linalg.norm(self.acc, axis=1)),
+                                seed=int(self.rng.integers(1 << 30)))
         return Scenario(name, title, description, self.acc, self.gyro, hr, temp,
-                        self.truth, self.events)
+                        self.truth, self.events, ppg=ppg, ppg_fs=pfs)
 
 
 # --------------------------------------------------------------------------

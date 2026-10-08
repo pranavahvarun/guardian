@@ -1,0 +1,33 @@
+Physiological module input check (Stage 6.4)
+
+A  HR SWEEP, synthetic PPG at 100 Hz, 30 s buffer, skin temp 33 C
+    true    est   peak   spec  band     P(LOW) P(NORM) P(HIGH) quality
+      40   40.0  128.0   40.0  NORMAL    0.009   0.959   0.032    0.00
+      45   44.0   89.3   44.0  NORMAL    0.021   0.659   0.320    0.00
+      50   50.0  160.0   50.0  HIGH      0.004   0.469   0.527    0.00
+      55   54.0  109.7   54.0  HIGH      0.002   0.249   0.749    0.00
+      58   58.0  118.2   58.0  HIGH      0.003   0.217   0.780    0.00
+      62   62.5   63.0   62.0  NORMAL    0.036   0.891   0.073    1.00
+      70   69.9   69.8   70.0  NORMAL    0.001   0.997   0.002    1.00
+      80   80.0   80.0   80.0  NORMAL    0.000   0.998   0.002    1.00
+      90   89.7   89.3   90.0  NORMAL    0.000   0.994   0.006    1.00
+      98   98.2   98.5   98.0  NORMAL    0.000   0.955   0.045    1.00
+     102  101.5  101.1  102.0  HIGH      0.000   0.053   0.947    1.00
+     110  109.9  109.7  110.0  HIGH      0.000   0.010   0.990    1.00
+     130  129.0  128.0  130.0  HIGH      0.000   0.007   0.993    1.00
+     160  160.0  160.0  160.0  HIGH      0.000   0.016   0.983    1.00
+RESULT sweep: LOW band picked for 0 of 5 heart rates below 60 bpm
+
+B  HER TRAINING TABLE: 8612 windows, 15 people
+   band counts: LOW <60 470, NORMAL 60-100 5904, HIGH >100 2238
+   estimated HR below 60: 2624 windows; reference HR above 60 in 84% of them, above 100 in 30%
+   her HR error: mean 16.8 bpm, median 3.6 bpm
+   her quality score: min 0.81, 0% of windows below GOOD (0.70)
+RESULT table: low estimated HR came with reference above 60 in 84%; quality score never below 0.81
+   leave-one-person-out, balanced accuracy (mean, sd over 15 people):
+     60/100 bpm thresholds on her estimated HR (no model)  0.664  0.120
+     all 7 features (as deployed)                         0.830  0.091
+     without skin temperature                             0.845  0.090
+     HR only                                              0.785  0.102
+RESULT loso: thresholds 0.664, all 7 0.830, no temperature 0.845, HR only 0.785
+

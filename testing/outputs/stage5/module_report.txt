@@ -1,4 +1,4 @@
-GUARDIAN - MODULE REPORT (Stage 5)
+GUARDIAN - MODULE REPORT (Stage 6)
 ==============================================================================
 
 MOTION MODULE (Pranavah)
@@ -30,7 +30,8 @@ WEDA-FALL, leave-one-person-out (25 people): accuracy 80.6%, balanced 74.0%,
 UMAFall, frozen model: accuracy 28.6% (his numbers). Walking and stairs
   transfer well; bending, sit/stand, lying down and hands up mostly do not.
   His UMAFall run left the gyroscope in deg/s (model expects rad/s), so this
-  number mixes a unit error with real dataset shift. To be re-run.
+  number mixes a unit error with real dataset shift. He also read the waist
+  sensor (ID 3). Re-run with the wrist (ID 2) and right units: see below.
 Caveat: the final model is trained on all 25 WEDA people, including the
   people in our scenarios, so activity output in the scenarios is in-sample.
 Model in use: his features and settings retrained on our evenly spaced
@@ -46,10 +47,23 @@ Timing, leave-one-person-out (testing/activity_loso_timing.py):
   RESULT loso: smoothed balanced A 0.791, B 0.765, C 0.801 (C - B = +0.036)
   VERDICT RETRAIN on our timing (C beats B by more than 0.02 balanced)
 
-PHYSIOLOGICAL MODULE (Mithuna)
+PHYSIOLOGICAL MODULE (Mithuna, Stage 6)
 ------------------------------------------------------------------------------
-Placeholder: returns 0 with quality 0 until Stage 6. Heart rate in the
-scenarios is synthetic.
+Mithuna's module: wrist PPG -> filter -> heart rate (peaks + spectrum) ->
+  HRV (mean RR, RMSSD, SDNN), pulse amplitude, skin temperature, quality
+  -> XGBoost (200 trees, depth 4) on 30 s windows of PPG-DaLiA (15 people).
+Classes are heart-rate bands from the reference HR, not diagnoses. Renamed
+  in the wrapper: LOW (<60), NORMAL (60-100), HIGH (>100) bpm.
+Her numbers: leave-one-person-out balanced accuracy 77.2% (sd 13.9);
+  HR error 16.9 bpm mean, 55% of windows within 5 bpm (8612 windows).
+Wrapper (streams/physiological/stream.py): keeps a 30 s PPG buffer,
+  resamples to 64 Hz, first output 30 s after start. Score = chance HR is
+  outside 60-100. Quality = agreement of her two HR estimates (starting rule).
+Scenario PPG is SYNTHETIC (simulator/ppg_synth.py).
+Input check (testing/check_physio_inputs.py):
+  RESULT sweep: LOW band picked for 0 of 5 heart rates below 60 bpm
+  RESULT table: low estimated HR came with reference above 60 in 84%; quality score never below 0.81
+  RESULT loso: thresholds 0.664, all 7 0.830, no temperature 0.845, HR only 0.785
 
 ACCEPTANCE CHECK (testing/check_stream.py)
 ------------------------------------------------------------------------------
