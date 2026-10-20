@@ -1,0 +1,42 @@
+{
+  "name": "C8",
+  "title": "C8: walking with a high heart rate (elderly)",
+  "description": "Walking with heart rate 118 bpm. Walking explains it.",
+  "simulated": true,
+  "seconds": 70.3,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 39.44,
+      "label": "D01 walking (U29)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 39.44,
+      "end": 50.16,
+      "label": "D01 walking (U29)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 50.16,
+      "end": 59.6,
+      "label": "D01 walking (U29)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 59.6,
+      "end": 70.32,
+      "label": "D01 walking (U29)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": [],
+  "ppg": true
+}

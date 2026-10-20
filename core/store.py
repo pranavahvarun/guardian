@@ -6,6 +6,7 @@ Needs the database running (docker compose up -d) and:  pip install "psycopg[bin
 
     py -m core.store --ping       can we connect, and what is in there
     py -m core.store --check      what each demo user is allowed to see
+    py -m core.store --alerts     alerts saved so far (Stage 7.5)
 
 Two logins (see backend/db/init/02_access.sql):
     GUARDIAN_DB_URL      owner, used by the pipeline to write
@@ -35,6 +36,7 @@ class Store:
 
     def __init__(self, url=None):
         self.conn = connect(url)
+        self._alerts = {}                 # run_id -> {"seen": n events, "id": open row}
 
     def start_run(self, wearer_id, scenario, truth=None, simulated=True, notes=None,
                   status="done") -> int:
@@ -69,6 +71,42 @@ class Store:
                           (f'{{"run_id": {run_id}, "wearer_id": {wearer_id}, "t": {t}}}',))
         self.conn.commit()
 
+    def sync_alerts(self, run_id, wearer_id, am):
+        """Write the alert manager's new events (Stage 7.5). One alerts row per
+        episode, opened by a check-in or alert, updated as it moves on, closed
+        (status resolved) when cleared, cancelled or answered."""
+        from psycopg.types.json import Jsonb
+        from core.alerts import LABEL, STAGE
+        st = self._alerts.setdefault(run_id, {"seen": 0, "id": None})
+        with self.conn.cursor() as cur:
+            for e in am.events[st["seen"]:]:
+                ev, state, kind = e["event"], e["state"], LABEL[e["type"]]
+                if st["id"] is None:
+                    if ev not in ("check-in", "alert"):
+                        continue
+                    cur.execute(
+                        "INSERT INTO alerts (run_id, wearer_id, t_s, kind, emergency_score, "
+                        "evidence, stage, history) VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+                        (run_id, wearer_id, e["t"], kind, e["score"], Jsonb(e["evidence"]),
+                         STAGE[state], Jsonb([e])))
+                    st["id"] = cur.fetchone()[0]
+                elif ev == "recovered":
+                    cur.execute("UPDATE alerts SET history = history || %s, updated_at = now() "
+                                "WHERE id = %s", (Jsonb([e]), st["id"]))
+                elif state == "IDLE":
+                    cur.execute("UPDATE alerts SET stage = %s, status = 'resolved', "
+                                "history = history || %s, updated_at = now() WHERE id = %s",
+                                (ev, Jsonb([e]), st["id"]))
+                    st["id"] = None
+                else:
+                    cur.execute("UPDATE alerts SET stage = %s, kind = %s, emergency_score = %s, "
+                                "evidence = %s, history = history || %s, updated_at = now() "
+                                "WHERE id = %s",
+                                (STAGE[state], kind, e["score"], Jsonb(e["evidence"]),
+                                 Jsonb([e]), st["id"]))
+        st["seen"] = len(am.events)
+        self.conn.commit()
+
     def end_run(self, run_id, status="done"):
         self.conn.execute("UPDATE runs SET status = %s, ended_at = now() WHERE id = %s",
                           (status, run_id))
@@ -97,6 +135,19 @@ def ping():
             print(f"  {t:16s} {n}")
 
 
+def alerts():
+    with connect() as c:
+        rows = c.execute(
+            "SELECT a.id, a.run_id, r.scenario, u.full_name, a.t_s, a.kind, a.stage, a.status, "
+            "a.emergency_score FROM alerts a JOIN runs r ON r.id = a.run_id "
+            "JOIN users u ON u.id = a.wearer_id ORDER BY a.id").fetchall()
+    if not rows:
+        print("  no alerts saved")
+    for i, run, scen, who, t, kind, stage, status, sc in rows:
+        print(f"  #{i:<4d} run {run:<4d} {scen or '-':20s} {who:12s} t={t:6.1f}s {kind:12s} "
+              f"{stage:22s} {status:10s} score {sc:.2f}")
+
+
 def check():
     with connect() as c:
         users = c.execute("SELECT id, full_name, role FROM users ORDER BY id").fetchall()
@@ -118,12 +169,15 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--ping", action="store_true")
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--alerts", action="store_true")
     a = ap.parse_args(argv)
     if a.ping:
         ping()
     if a.check:
         check()
-    if not (a.ping or a.check):
+    if a.alerts:
+        alerts()
+    if not (a.ping or a.check or a.alerts):
         ap.print_help()
 
 

@@ -1,0 +1,41 @@
+{
+  "name": "C11",
+  "title": "C11: lateral slip, lies still, heart-rate sensor off",
+  "description": "Walking, a lateral slip fall, then 2 min without moving. No PPG at all (sensor off or not touching the skin).",
+  "simulated": true,
+  "seconds": 179.4,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 47.12,
+      "label": "D01 walking (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 47.12,
+      "end": 59.44,
+      "label": "F02 lateral fall while walking (slip) (U10)",
+      "kind": "fall"
+    },
+    {
+      "start": 59.44,
+      "end": 179.44,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 51.64,
+      "what": "fall impact (F02)"
+    }
+  ],
+  "ppg": false
+}

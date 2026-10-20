@@ -1,0 +1,35 @@
+{
+  "name": "C3",
+  "title": "C3: falls trying to sit down, lies still",
+  "description": "A backward fall while trying to sit down, then 2 min without moving.",
+  "simulated": true,
+  "seconds": 157.2,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 37.2,
+      "label": "F05 backward fall trying to sit down (U04)",
+      "kind": "fall"
+    },
+    {
+      "start": 37.2,
+      "end": 157.2,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 33.08,
+      "what": "fall impact (F05)"
+    }
+  ],
+  "ppg": true
+}

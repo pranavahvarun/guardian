@@ -1,0 +1,35 @@
+{
+  "name": "C9",
+  "title": "C9: afternoon nap, 35 min (elderly)",
+  "description": "Sits down and naps for 35 min, heart rate calm. Nobody answers the band in the simulation.",
+  "simulated": true,
+  "seconds": 2142.3,
+  "clock": "14:30",
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 42.32,
+      "label": "D04 sitting on a chair, wait, get up (U21)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 42.32,
+      "end": 2142.32,
+      "label": "afternoon nap (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 42.32,
+      "what": "nap starts"
+    }
+  ],
+  "ppg": true
+}

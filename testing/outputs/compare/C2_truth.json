@@ -1,0 +1,59 @@
+{
+  "name": "C2",
+  "title": "C2: forward slip, gets up and walks away",
+  "description": "Walking, a forward slip fall, 6 s on the floor, then sits, gets up and walks away.",
+  "simulated": true,
+  "seconds": 145.1,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 59.78,
+      "label": "D01 walking (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 59.78,
+      "end": 73.18,
+      "label": "F01 forward fall while walking (slip) (U08)",
+      "kind": "fall"
+    },
+    {
+      "start": 73.18,
+      "end": 79.18,
+      "label": "on the floor (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 79.18,
+      "end": 89.52,
+      "label": "D04 sitting on a chair, wait, get up (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 89.52,
+      "end": 119.3,
+      "label": "D01 walking (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 119.3,
+      "end": 145.14,
+      "label": "D01 walking (U08)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": [
+    {
+      "t": 65.4,
+      "what": "fall impact (F01)"
+    }
+  ],
+  "ppg": true
+}

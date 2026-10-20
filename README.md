@@ -9,14 +9,17 @@ The band senses and sends; everything below runs on the paired laptop.
 |---|---|---|
 | `contract.py` | the interface every stream follows | |
 | `data/` | dataset loaders (UMAFall, FallAllD, WEDA-FALL); `data/raw/` is not in git | Pranavah |
-| `streams/activity/` | activity module activity_v1 (4 classes, random forest); `stream.py` is the contract wrapper. Model in use `models/activity_rf_even.joblib` (retrained on our timing); his original is `models/activity_rf.joblib` | Sudharshan |
-| `streams/motion.py` | motion module (impact gate, impact score, stillness) | Pranavah |
-| `streams/physiological/` | heart-rate module (PPG -> HR, HRV, XGBoost heart-rate band); `stream.py` is the contract wrapper. Model `models/physiological_xgb.joblib` | Mithuna |
+| `core/names.py` | module names used on slides and screens (stored keys unchanged) | |
+| `streams/activity/` | Activity Recognition Module (activity_v1, 4 classes, random forest); `stream.py` is the contract wrapper. Model in use `models/activity_rf_even.joblib` (retrained on our timing); his original is `models/activity_rf.joblib` | Sudharshan |
+| `streams/motion.py` | Impact and Immobility Detection Module (impact gate, impact score, stillness) | Pranavah |
+| `streams/physiological/` | Heart Rate Monitoring Module (PPG -> HR, HRV, XGBoost heart-rate band); `stream.py` is the contract wrapper. Model `models/physiological_xgb.joblib` | Mithuna |
 | `streams/archive/` | retired modules (old activity module `context.py`, physiological placeholder) | |
 | `core/pipeline.py` | runs every stream on each window; new modules plug in here | Pranavah |
 | `core/store.py` | saves outputs in Postgres, reads them back as a given user | Pranavah |
 | `core/watch.py` | follows live runs as a given user (terminal stand-in for the live screen) | Pranavah |
-| `core/fusion.py` | fusion and decision manager, placeholder | Pranavah |
+| `core/fusion.py` | Emergency Risk Estimation Module (fusion, v3 frozen); the Situational Context Module (time of day, walking) is inside it for now | Pranavah |
+| `core/alerts.py` | Alert Escalation Module (check-in, alert, caregiver, urgent) | Pranavah |
+| `core/baseline.py` | impact-only detector, used only as a comparison | Pranavah |
 | `core/FUSION_DESIGN.md` | fusion design: inputs, emergency types, score, alert levels, expected results | Pranavah |
 | `simulator/` | SIMULATED scenarios (real WEDA-FALL motion + synthetic heart rate and PPG); `live.py` plays them in real time | Pranavah |
 | `backend/db/init/` | database tables, role-based access rules, demo users | Pranavah |

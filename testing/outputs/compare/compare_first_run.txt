@@ -1,0 +1,43 @@
+COMPARISON: Emergency Risk Estimation Module vs an impact-only detector  (first run, SIMULATED cases)
+cases locked 20 Oct 2026, before any case was built or run; case-file fingerprint 19f0088238c2d4d4
+fusion v3 + Alert Escalation Module, frozen settings b2c6184d71c1ab4c (unchanged)
+impact-only: alert when the impact score reaches 0.7, caregiver 30 s later (no cancel pressed, for either system)
+times are after the event (fall impact, or when the change starts)
+
+  id   situation                     expected     | impact-only  caregiver  ok  | Guardian   alert     caregiver  ok 
+  -------------------------------------------------------------------------------------------------------------------
+  C1   backward slip, lies still     caregiver    | caregiver    +34 s      yes | caregiver  +7 s      +38 s      yes
+  C2   forward slip, gets up         no caregiver | caregiver    +35 s      NO  | alert      +7 s      -          yes
+  C3   falls sitting down, still     caregiver    | nothing      -          NO  | nothing    -         -          NO 
+  C4   faint sideways, HR 45         caregiver    | caregiver    +35 s      yes | caregiver  +7 s      +38 s      yes
+  C5   hard knocks, daily (elderly)  no caregiver | nothing      -          yes | nothing    -         -          yes
+  C6   stumbles and a jump           no caregiver | nothing      -          yes | check-in   -         -          yes
+  C7   HR 40 sitting, no impact      caregiver*   | nothing      -          NO  | check-in   -         -          NO 
+  C8   walking, HR 118 (elderly)     no caregiver | nothing      -          yes | nothing    -         -          yes
+  C9   35 min nap (elderly)          no alert     | nothing      -          yes | check-in   -         -          yes
+  C10  no response 45 min (elderly)  urgent       | nothing      -          NO  | urgent     -         +2341 s    yes
+  C11  lateral slip, still, no PPG   caregiver    | caregiver    +35 s      yes | caregiver  +7 s      +38 s      yes
+  C12  soft collapse, no impact      caregiver+   | nothing      -          NO  | nothing    -         -          NO 
+
+  as expected: impact-only 7 of 12, Guardian 9 of 12
+  * provisional: heart-rate thresholds 60/100 bpm not yet confirmed with sources
+  + known gap, written down before the run: no impact and normal heart rate
+
+  where impact-only did better:
+    C1 caregiver told sooner by impact-only (+34 s vs +38 s)
+    C4 caregiver told sooner by impact-only (+35 s vs +38 s)
+    C11 caregiver told sooner by impact-only (+35 s vs +38 s)
+
+  Guardian alert path per case:
+    C1   check-in -> alert -> caregiver   (peak impact score 0.96)
+    C2   check-in -> cleared -> check-in -> alert -> cleared -> check-in   (peak impact score 0.99)
+    C3   nothing   (peak impact score 0.23)
+    C4   check-in -> alert -> caregiver   (peak impact score 0.97)
+    C5   nothing   (peak impact score 0.00)
+    C6   check-in -> cleared -> check-in -> cleared   (peak impact score 0.68)
+    C7   check-in   (peak impact score 0.00)
+    C8   nothing   (peak impact score 0.00)
+    C9   check-in -> check-in unanswered   (peak impact score 0.00)
+    C10  check-in -> check-in unanswered -> second check-in -> urgent   (peak impact score 0.00)
+    C11  check-in -> alert -> caregiver   (peak impact score 0.96)
+    C12  nothing   (peak impact score 0.00)

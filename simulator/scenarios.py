@@ -15,6 +15,10 @@ How a scenario is made:
   heart-rate trace, at 100 Hz, with artefact wherever the wrist moves
   (simulator/ppg_synth.py). It lets the physiological stream run; it says
   nothing about how well that stream works on real PPG.
+- Lead-in (Stage 7.3): every scenario starts with 30 s of SYNTHETIC resting
+  (band already worn), so the physiological stream has finished its 30 s
+  warm-up before anything happens. A real band is worn all day; without
+  this, events in the first 30 s were invisible to the heart-rate stream.
 
 Every scenario carries simulated=True and a ground-truth timeline. The truth
 never goes to the streams; it is only used to draw and check results.
@@ -36,6 +40,7 @@ from simulator import ppg_synth  # noqa: E402
 FS = TARGET_FS
 FADE = int(0.5 * FS)
 IMPACT_G = 2.25
+LEAD_IN_S = 30.0                        # Stage 7.3: physiological warm-up before events
 
 
 @dataclass
@@ -91,8 +96,9 @@ class Library:
 
 
 class Builder:
-    def __init__(self, lib: Library, seed=0):
+    def __init__(self, lib: Library, seed=0, lead_in=LEAD_IN_S):
         self.lib, self.rng = lib, np.random.default_rng(seed)
+        self.lead_in = lead_in
         self.acc = np.zeros((0, 3))
         self.gyro = np.zeros((0, 3))
         self.truth, self.events = [], []
@@ -115,8 +121,24 @@ class Builder:
                                label=label, kind=kind))
         return start
 
+    def _rest(self, seconds, o, label, kind="synthetic"):
+        """Wrist held at orientation o with small sensor noise (synthetic)."""
+        n = int(seconds * FS)
+        o = np.asarray(o, float)
+        o = o / max(np.linalg.norm(o), 1e-6)
+        start = self.now
+        self.acc = np.vstack([self.acc, o + self.rng.normal(0, 0.008, (n, 3))])
+        self.gyro = np.vstack([self.gyro, self.rng.normal(0, 0.8, (n, 3))])
+        self.truth.append(dict(start=round(start, 2), end=round(self.now, 2),
+                               label=label, kind=kind))
+
+    def _lead(self, o):
+        if len(self.acc) == 0 and self.lead_in > 0:
+            self._rest(self.lead_in, o, "lead-in: resting, band already worn (synthetic)")
+
     def record(self, subject, code, rep=1):
         rec = self.lib.get(subject, code, rep)
+        self._lead(rec.acc[:FADE].mean(axis=0))
         g = rec.gyro if rec.gyro is not None else np.zeros_like(rec.acc)
         name, _state, is_fall, *_ = weda.ACTIVITIES[code]
         start = self._append(rec.acc, g, f"{code} {name} ({subject})",
@@ -131,16 +153,9 @@ class Builder:
         return self
 
     def still(self, seconds, label="lying still (synthetic)"):
-        n = int(seconds * FS)
-        o = self.acc[-FADE:].mean(axis=0) if len(self.acc) else np.array([0, 0, 1.0])
-        o = o / max(np.linalg.norm(o), 1e-6)
-        a = o + self.rng.normal(0, 0.008, (n, 3))
-        g = self.rng.normal(0, 0.8, (n, 3))
-        start = self.now
-        self.acc = np.vstack([self.acc, a])
-        self.gyro = np.vstack([self.gyro, g])
-        self.truth.append(dict(start=round(start, 2), end=round(self.now, 2),
-                               label=label, kind="synthetic"))
+        self._lead([0, 0, 1.0])
+        o = self.acc[-FADE:].mean(axis=0)
+        self._rest(seconds, o, label)
         return self
 
     def trace(self, points, noise):
@@ -248,5 +263,27 @@ SCENARIOS = {f.__name__: f for f in (normal_day, hard_fall_long_lie, fall_then_g
                                      night_sleep)}
 
 
+# --------------------------------------------------------------------------
+# live demo only (9 Oct 2026). NOT a tuning or test scenario: fusion was
+# frozen and tested before this existed, and simulator.run all skips it.
+# --------------------------------------------------------------------------
+
+def demo_long_lie(lib):
+    """hard_fall_long_lie with a longer lie (340 s instead of 60 s), to show
+    on the live screen that motion's impact score wears off (held 60 s, then
+    decays, gone about 3 min after the fall) while fusion keeps the impact
+    and long lie stays high, up to URGENT at 300 s without movement."""
+    b = Builder(lib, 2).record("U04", "D01").record("U04", "F01").still(340)
+    t = b.impact_t()
+    return b.build("demo_long_lie", "Hard fall, then a long lie (5+ min)",
+                   "Walking, a forward slip fall, then 340 s without moving. The motion "
+                   "impact score wears off after about a minute; the emergency score "
+                   "should stay high and go urgent at 300 s still.",
+                   [(0, 76), (t, 80), (t + 20, 104), (t + 60, 100), (t + 120, 92)])
+
+
+DEMOS = {"demo_long_lie": demo_long_lie}
+
+
 def build(name, root=weda.DEFAULT_ROOT) -> Scenario:
-    return SCENARIOS[name](Library(root))
+    return {**SCENARIOS, **DEMOS}[name](Library(root))

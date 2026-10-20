@@ -1,0 +1,41 @@
+{
+  "name": "C1",
+  "title": "C1: backward slip, lies still",
+  "description": "Walking, a backward slip fall, then 2 min without moving.",
+  "simulated": true,
+  "seconds": 184.6,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 49.5,
+      "label": "D01 walking (U07)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 49.5,
+      "end": 64.64,
+      "label": "F03 backward fall while walking (slip) (U07)",
+      "kind": "fall"
+    },
+    {
+      "start": 64.64,
+      "end": 184.64,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 54.96,
+      "what": "fall impact (F03)"
+    }
+  ],
+  "ppg": true
+}

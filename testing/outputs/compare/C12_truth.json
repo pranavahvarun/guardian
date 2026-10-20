@@ -1,0 +1,35 @@
+{
+  "name": "C12",
+  "title": "C12: soft collapse, no impact (elderly)",
+  "description": "Sitting, then slumps and does not move for 2.5 min. No impact, heart rate stays normal.",
+  "simulated": true,
+  "seconds": 187.5,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 37.52,
+      "label": "D04 sitting on a chair, wait, get up (U29)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 37.52,
+      "end": 187.52,
+      "label": "slumped, not moving (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 37.52,
+      "what": "slumps"
+    }
+  ],
+  "ppg": true
+}

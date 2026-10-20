@@ -1,0 +1,41 @@
+{
+  "name": "C4",
+  "title": "C4: faints sideways from a chair, slow heart rate",
+  "description": "Sitting, a sideways fall from the chair as in a faint, heart rate drops to 45, then 2 min still.",
+  "simulated": true,
+  "seconds": 171.0,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 39.32,
+      "label": "D04 sitting on a chair, wait, get up (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 39.32,
+      "end": 51.02,
+      "label": "F08 lateral fall while sitting (faint or asleep) (U10)",
+      "kind": "fall"
+    },
+    {
+      "start": 51.02,
+      "end": 171.02,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 43.1,
+      "what": "fall impact (F08)"
+    }
+  ],
+  "ppg": true
+}

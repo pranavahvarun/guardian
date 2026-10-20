@@ -1,0 +1,48 @@
+{
+  "name": "C5",
+  "title": "C5: busy day with hard knocks (elderly)",
+  "description": "Walking, hitting a table with the hand, clapping, opening a door, walking.",
+  "simulated": true,
+  "seconds": 107.4,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 53.62,
+      "label": "D01 walking (U21)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 53.62,
+      "end": 59.22,
+      "label": "D09 hit table with hand (U21)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 59.22,
+      "end": 70.86,
+      "label": "D10 clapping hands (U21)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 70.86,
+      "end": 83.8,
+      "label": "D11 opening and closing door (U21)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 83.8,
+      "end": 107.42,
+      "label": "D01 walking (U21)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": [],
+  "ppg": true
+}

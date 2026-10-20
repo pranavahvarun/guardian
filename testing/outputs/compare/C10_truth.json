@@ -1,0 +1,35 @@
+{
+  "name": "C10",
+  "title": "C10: does not respond for 45 min, daytime (elderly)",
+  "description": "Sitting, then slumps and does not move or answer for 45 min. No impact, heart rate normal.",
+  "simulated": true,
+  "seconds": 2742.3,
+  "clock": "11:00",
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 42.32,
+      "label": "D04 sitting on a chair, wait, get up (U22)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 42.32,
+      "end": 2742.32,
+      "label": "slumped, not responding (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 42.32,
+      "what": "stops responding"
+    }
+  ],
+  "ppg": true
+}

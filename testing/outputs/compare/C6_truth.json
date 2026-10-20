@@ -1,0 +1,48 @@
+{
+  "name": "C6",
+  "title": "C6: stumbles and a jump, no fall",
+  "description": "Walking, a stumble, a gentle jump to reach something, another stumble, walking.",
+  "simulated": true,
+  "seconds": 109.5,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 59.78,
+      "label": "D01 walking (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 59.78,
+      "end": 68.3,
+      "label": "D07 stumble while walking (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 68.3,
+      "end": 73.82,
+      "label": "D08 gentle jump to reach high object (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 73.82,
+      "end": 83.64,
+      "label": "D07 stumble while walking (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 83.64,
+      "end": 109.48,
+      "label": "D01 walking (U08)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": [],
+  "ppg": true
+}

@@ -13,8 +13,9 @@ For each scenario it writes
     testing/outputs/figures/stage5_<name>.png   timeline: signal, each stream, truth
 
 Times in outputs are window END times: the moment a stream's answer exists.
-There is no fusion and no alert yet (Stage 7); "flagged" below only means
-the motion score crossed its evaluation threshold.
+"flagged" below only means the motion score crossed its evaluation
+threshold. Fusion and alerts: py -m core.alerts all (reads these outputs);
+with --db the fusion rows and alerts are saved with each run (Stage 7.5).
 """
 
 from __future__ import annotations
@@ -41,14 +42,30 @@ WEARER = {"normal_day": 2, "hard_fall_long_lie": 2, "fall_then_get_up": 3,
 FIG = ROOT / "testing" / "outputs" / "figures"
 
 
+def run_scenario(sc):
+    """Run one built Scenario through every stream. Returns (sc, windows), where
+    windows is a list of per-window record lists, times = window END (as saved).
+    Used by testing/fusion_eval.py for the held-out tests (Stage 7.4)."""
+    pipe = Pipeline()
+    wins = []
+    for w in sc.windows():
+        recs = pipe.step(w)
+        for r in recs:
+            r["t"] = round(r["t"] + WINDOW_SEC, 2)
+        wins.append(recs)
+    return sc, wins
+
+
 def run(name, store=None):
     sc = build(name)
     pipe = Pipeline()
-    rows = []
+    rows, wins = [], []
     for w in sc.windows():
-        for r in pipe.step(w):
+        recs = pipe.step(w)
+        for r in recs:
             r["t"] = round(r["t"] + WINDOW_SEC, 2)
-            rows.append(r)
+        rows.extend(recs)
+        wins.append(recs)
     D = pd.DataFrame(rows)
     OUT.mkdir(parents=True, exist_ok=True)
     flat = D.assign(extras=D.extras.apply(json.dumps))
@@ -68,7 +85,13 @@ def run(name, store=None):
         run_id = store.start_run(wid, name, truth=json.loads(
             (OUT / f"{name}_truth.json").read_text()), simulated=True)
         store.write(run_id, wid, rows)
-        print(f"database: run {run_id} for wearer {wid}, {len(rows)} stream outputs")
+        # Stage 7.5: fusion and alerts, frozen settings, saved with the run
+        from core.alerts import fusion_record, replay
+        fused, am = replay(wins, sc.clock)
+        store.write(run_id, wid, [fusion_record(f, f["state"]) for f in fused])
+        store.sync_alerts(run_id, wid, am)
+        print(f"database: run {run_id} for wearer {wid}, {len(rows)} stream outputs, "
+              f"{len(fused)} fusion rows, alerts: {am.outcome()}")
     return D
 
 

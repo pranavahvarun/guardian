@@ -108,7 +108,8 @@ class Pipeline:
         return out
 
     def describe(self) -> str:
-        return "\n".join(f"  {k:14s} {v}" for k, v in self.status.items())
+        from core.names import name
+        return "\n".join(f"  {name(k):40s} ({k:13s}) {v}" for k, v in self.status.items())
 
 
 if __name__ == "__main__":

@@ -1,0 +1,35 @@
+{
+  "name": "C7",
+  "title": "C7: heart rate falls to 40 while sitting, no impact",
+  "description": "Sitting down, then sitting still while heart rate falls to 40 bpm and stays there for 2.5 min.",
+  "simulated": true,
+  "seconds": 192.3,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 42.32,
+      "label": "D04 sitting on a chair, wait, get up (U22)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 42.32,
+      "end": 192.32,
+      "label": "sitting quietly (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 42.32,
+      "what": "heart rate starts falling"
+    }
+  ],
+  "ppg": true
+}
