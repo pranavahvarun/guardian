@@ -1,0 +1,13 @@
+tune: 7 tuning scenarios, settings b2c6184d71c1ab4c
+
+  scenario                   expected         got                ok   first type   alert at (+s after event)  caregiver at     path
+  normal_day                 nothing          nothing            PASS -            -                          -                nothing
+  hard_fall_long_lie         caregiver        caregiver          PASS Hard fall    60.8s (+6.6)               91.8s (+37.6)    check-in -> alert -> caregiver
+  fall_then_get_up           alert            alert, cleared     PASS Hard fall    57.1s (+6.9)               -                check-in -> alert -> cleared
+  faint_collapse             caregiver        caregiver          PASS Hard fall    55.8s (+9.8)               86.8s (+40.8)    check-in -> alert -> caregiver
+  false_alarm                nothing          nothing            PASS -            -                          -                nothing
+  hr_spike_no_fall           check-in         check-in           PASS* Heart rate   -                          -                check-in
+  night_sleep                nothing          nothing            PASS -            -                          -                nothing
+  * provisional: heart-rate thresholds 60/100 bpm not yet confirmed with sources
+RESULT tune: 7 of 7 as expected
+FROZEN v3 b2c6184d71c1ab4c -> testing\outputs\stage7\fusion_frozen_v3.json (made AFTER the held-out test)

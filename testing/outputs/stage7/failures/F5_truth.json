@@ -1,0 +1,29 @@
+{
+  "name": "F5",
+  "title": "F5: daytime nap, 35 min",
+  "description": "Sits down and naps for 35 min in the afternoon, heart rate calm. In the simulation nobody answers the band.",
+  "simulated": true,
+  "seconds": 2147.4,
+  "clock": "14:30",
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 47.36,
+      "label": "D04 sitting on a chair, wait, get up (U22)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 47.36,
+      "end": 2147.36,
+      "label": "daytime nap (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": []
+}

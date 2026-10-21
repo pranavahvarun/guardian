@@ -1,0 +1,162 @@
+{
+  "weights": {
+    "hard_fall": {
+      "impact": 1.0,
+      "moved": 0.7,
+      "walking": 0.2
+    },
+    "long_lie": {
+      "gate_impact": 0.5,
+      "still": 1.0,
+      "still_full_s": 60.0,
+      "moved": 1.0
+    },
+    "faint": {
+      "gate_impact": 0.3,
+      "gate_low_s": 10.0,
+      "still": 0.5,
+      "still_full_s": 30.0,
+      "low": 0.4,
+      "low_full_s": 30.0,
+      "impact": 0.3,
+      "moved": 1.0
+    },
+    "heart_rate": {
+      "out": 1.0,
+      "out_full_s": 60.0,
+      "walking": 1.0
+    },
+    "unresponsive": {
+      "still": 0.4,
+      "still_full_s": 1800.0,
+      "night": 1.0
+    }
+  },
+  "hr_low": 60.0,
+  "hr_high": 100.0,
+  "hr_min_quality": 0.5,
+  "smooth_s": 10.0,
+  "confirm_s": 12.0,
+  "night": [
+    1320,
+    420
+  ],
+  "walking": "LOCOMOTION",
+  "check_in": 0.4,
+  "alert": 0.7,
+  "cancel_s": 30.0,
+  "checkin_answer_s": 120.0,
+  "urgent_still_s": 300.0,
+  "version": 2,
+  "upright": [
+    "LOCOMOTION",
+    "SITTING_STANDING"
+  ],
+  "upright_share": 0.5,
+  "recover_s": 8.0,
+  "fingerprint": "2ee9b8d818c1af37",
+  "date": "2026-10-09",
+  "tune_results": [
+    {
+      "name": "normal_day",
+      "expected": "nothing",
+      "got": "nothing",
+      "ok": true,
+      "path": "nothing",
+      "lead": "-",
+      "peak": 0.01,
+      "checkin": "-",
+      "alert": "-",
+      "cleared": "-",
+      "caregiver": "-",
+      "provisional": false
+    },
+    {
+      "name": "hard_fall_long_lie",
+      "expected": "caregiver",
+      "got": "caregiver",
+      "ok": true,
+      "path": "check-in -> alert -> caregiver",
+      "lead": "Hard fall",
+      "peak": 0.99,
+      "checkin": "58.3s (+4.2)",
+      "alert": "60.8s (+6.6)",
+      "cleared": "-",
+      "caregiver": "91.8s (+37.6)",
+      "provisional": false
+    },
+    {
+      "name": "fall_then_get_up",
+      "expected": "alert",
+      "got": "alert, cleared",
+      "ok": true,
+      "path": "check-in -> alert -> cleared",
+      "lead": "Hard fall",
+      "peak": 0.98,
+      "checkin": "54.6s (+4.4)",
+      "alert": "57.1s (+6.9)",
+      "cleared": "81.9s (+31.7)",
+      "caregiver": "-",
+      "provisional": false
+    },
+    {
+      "name": "faint_collapse",
+      "expected": "caregiver",
+      "got": "caregiver",
+      "ok": true,
+      "path": "check-in -> alert -> caregiver",
+      "lead": "Hard fall",
+      "peak": 0.99,
+      "checkin": "53.3s (+7.3)",
+      "alert": "55.8s (+9.8)",
+      "cleared": "-",
+      "caregiver": "86.8s (+40.8)",
+      "provisional": false
+    },
+    {
+      "name": "false_alarm",
+      "expected": "nothing",
+      "got": "nothing",
+      "ok": true,
+      "path": "nothing",
+      "lead": "-",
+      "peak": 0.03,
+      "checkin": "-",
+      "alert": "-",
+      "cleared": "-",
+      "caregiver": "-",
+      "provisional": false
+    },
+    {
+      "name": "hr_spike_no_fall",
+      "expected": "check-in",
+      "got": "check-in",
+      "ok": true,
+      "path": "check-in",
+      "lead": "Heart rate",
+      "peak": 0.58,
+      "checkin": "114.1s",
+      "alert": "-",
+      "cleared": "-",
+      "caregiver": "-",
+      "provisional": true
+    },
+    {
+      "name": "night_sleep",
+      "expected": "nothing",
+      "got": "nothing",
+      "ok": true,
+      "path": "nothing",
+      "lead": "-",
+      "peak": 0.0,
+      "checkin": "-",
+      "alert": "-",
+      "cleared": "-",
+      "caregiver": "-",
+      "provisional": false
+    }
+  ],
+  "after_test": true,
+  "reason": "7.6: impact latch, upright recovery, activity fallback",
+  "based_on": "0a3011d7b96be571"
+}

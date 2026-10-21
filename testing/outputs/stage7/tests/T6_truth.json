@@ -1,0 +1,29 @@
+{
+  "name": "T6",
+  "title": "T6: heart rate sinks to 42 while sitting, no fall",
+  "description": "Sitting down, then sitting still while heart rate falls to 42 bpm and stays there for 2 min. No impact.",
+  "simulated": true,
+  "seconds": 174.9,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 44.86,
+      "label": "D04 sitting on a chair, wait, get up (U21)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 44.86,
+      "end": 174.86,
+      "label": "sitting quietly (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": []
+}

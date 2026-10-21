@@ -3,24 +3,30 @@
   "title": "Going to bed at night (elderly)",
   "description": "Late evening (starts 23:30): walking, sitting on the bed, then two minutes lying still with a calm heart rate. Long stillness alone is not an emergency: nothing should be raised.",
   "simulated": true,
-  "seconds": 141.2,
+  "seconds": 170.7,
   "clock": "23:30",
   "truth": [
     {
       "start": 0.0,
-      "end": 13.62,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 43.12,
       "label": "D01 walking (U29)",
       "kind": "daily activity"
     },
     {
-      "start": 13.62,
-      "end": 21.18,
+      "start": 43.12,
+      "end": 50.68,
       "label": "D04 sitting on a chair, wait, get up (U29)",
       "kind": "daily activity"
     },
     {
-      "start": 21.18,
-      "end": 141.18,
+      "start": 50.68,
+      "end": 170.68,
       "label": "lying in bed, asleep (synthetic)",
       "kind": "synthetic"
     }

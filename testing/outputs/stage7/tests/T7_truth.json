@@ -1,0 +1,41 @@
+{
+  "name": "T7",
+  "title": "T7: walking with a high heart rate (elderly)",
+  "description": "Walking and stairs with heart rate 115 bpm. Walking explains it: nothing should be raised.",
+  "simulated": true,
+  "seconds": 107.9,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 43.12,
+      "label": "D01 walking (U29)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 43.12,
+      "end": 68.96,
+      "label": "D03 walking up and downstairs (U29)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 68.96,
+      "end": 82.08,
+      "label": "D01 walking (U29)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 82.08,
+      "end": 107.92,
+      "label": "D03 walking up and downstairs (U29)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": []
+}

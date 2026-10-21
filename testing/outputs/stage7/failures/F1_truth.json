@@ -1,0 +1,29 @@
+{
+  "name": "F1",
+  "title": "F1: soft collapse, no impact",
+  "description": "Sitting, then slumps and does not move for 2 min. No impact, heart rate stays normal.",
+  "simulated": true,
+  "seconds": 164.9,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 44.86,
+      "label": "D04 sitting on a chair, wait, get up (U21)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 44.86,
+      "end": 164.86,
+      "label": "slumped, not moving (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": []
+}

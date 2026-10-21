@@ -1,0 +1,40 @@
+{
+  "name": "F6",
+  "title": "F6: fall, then 6 min on the floor",
+  "description": "Walking, a lateral slip, then 6 min without moving.",
+  "simulated": true,
+  "seconds": 419.7,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 49.32,
+      "label": "D01 walking (U04)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 49.32,
+      "end": 59.72,
+      "label": "F02 lateral fall while walking (slip) (U04)",
+      "kind": "fall"
+    },
+    {
+      "start": 59.72,
+      "end": 419.72,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 53.78,
+      "what": "fall impact (F02)"
+    }
+  ]
+}

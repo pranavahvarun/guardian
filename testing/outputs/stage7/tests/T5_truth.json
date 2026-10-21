@@ -1,0 +1,52 @@
+{
+  "name": "T5",
+  "title": "T5: falls trying to sit, gets up",
+  "description": "A backward fall while trying to sit down, 10 s on the floor, then sits, gets up and walks (recorded walk played twice).",
+  "simulated": true,
+  "seconds": 126.2,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 41.54,
+      "label": "F05 backward fall trying to sit down (U08)",
+      "kind": "fall"
+    },
+    {
+      "start": 41.54,
+      "end": 51.54,
+      "label": "on the floor (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 51.54,
+      "end": 66.98,
+      "label": "D04 sitting on a chair, wait, get up (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 66.98,
+      "end": 96.6,
+      "label": "D01 walking (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 96.6,
+      "end": 126.22,
+      "label": "D01 walking (U08)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": [
+    {
+      "t": 30.62,
+      "what": "fall impact (F05)"
+    }
+  ]
+}

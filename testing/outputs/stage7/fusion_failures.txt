@@ -1,0 +1,35 @@
+Fusion failure study (Stage 7.6). v1 = frozen 0a3011d7b96be571 (held-out tested); v3 = after-test fixes, settings b2c6184d71c1ab4c
+Simulated cases. 'good system' and 'we predicted' were written before running (F6, F7 together with the v2 fixes).
+
+A  SLOW ALERTS IN THE HELD-OUT TEST (frozen settings, saved outputs)
+  T1: impact 52.0 s; motion peak impact 0.62 at 55.8 s; alert at 99.2 s raised by Long lie (still 42 s, HR 91.71428571428572)
+  T4: impact 41.8 s; motion peak impact 0.36 at 45.9 s; alert at 76.9 s raised by Faint (still 27 s, HR 49.935064935064936)
+
+B  FAILURE SCENARIOS (SIMULATED)
+  id  case                                 good system        we predicted                  got               alert       caregiver   path
+  F1  soft collapse, no impact             alert              nothing                    v1 nothing           -           -           nothing
+                                                                                         v3 nothing           -           -           nothing
+  F2  struggles, then still                caregiver          caregiver (late)           v1 caregiver         58s(+7)     115s(+64)   check-in -> alert -> cleared -> alert -> caregiver
+                                                                                         v3 caregiver         58s(+7)     89s(+38)    check-in -> alert -> caregiver
+  F3  fall at night                        caregiver          caregiver                  v1 caregiver         57s(+7)     88s(+38)    check-in -> alert -> caregiver
+                                                                                         v3 caregiver         57s(+7)     88s(+38)    check-in -> alert -> caregiver
+  F4  cannot get up, moves arms            caregiver          alert, cleared             v1 alert             79s(+13)    -           check-in -> alert -> cleared
+                                                                                         v3 caregiver         79s(+13)    110s(+44)   check-in -> alert -> caregiver
+  F5  daytime nap 35 min                   nothing / check-in check-in, urgent           v1 caregiver URGENT  -           -           check-in -> urgent
+                                                                                         v3 check-in          -           -           check-in -> check-in unanswered
+  F6  fall, 6 min on floor                 caregiver, urgent  v1: caregiver, no urgent   v1 caregiver         63s(+9)     94s(+40)    check-in -> alert -> caregiver
+                                                                                         v3 caregiver URGENT  63s(+9)     94s(+40)    check-in -> alert -> caregiver -> urgent
+  F7  gets up, then rests                  alert, cleared     v1: 2nd check-in?          v1 alert             57s(+7)     -           check-in -> alert -> cleared -> alert -> cleared
+                                                                                         v3 alert             57s(+7)     -           check-in -> alert -> cleared
+
+C  MISSING OR POOR STREAMS (saved outputs edited before fusion)
+  id  case                                 good system        we predicted                  got               alert       caregiver   path
+  I1  T7 walking HR 115, activity missing  nothing            heart-rate alert (false)   v1 alert             91s         -           check-in -> alert
+                                                                                         v3 nothing           -           -           nothing
+  I2  hard fall + long lie, no PPG         caregiver          caregiver                  v1 caregiver         61s(+7)     92s(+38)    check-in -> alert -> caregiver
+                                                                                         v3 caregiver         61s(+7)     92s(+38)    check-in -> alert -> caregiver
+  I3  T4 faint HR 48, no PPG               caregiver          caregiver, later           v1 check-in          -           -           check-in -> cleared
+                                                                                         v3 check-in          -           -           check-in
+  I4  HR spike, HR quality 0.45            check-in           nothing (HR never trusted) v1 nothing           -           -           nothing
+                                                                                         v3 nothing           -           -           nothing
+

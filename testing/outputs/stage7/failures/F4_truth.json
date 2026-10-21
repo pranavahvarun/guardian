@@ -1,0 +1,58 @@
+{
+  "name": "F4",
+  "title": "F4: fall, cannot get up, keeps moving the arms",
+  "description": "Walking, a trip fall, then the arms keep moving on the floor (recorded clapping, table hits, door) without getting up.",
+  "simulated": true,
+  "seconds": 123.6,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 59.62,
+      "label": "D01 walking (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 59.62,
+      "end": 74.92,
+      "label": "F04 forward fall while walking (trip) (U08)",
+      "kind": "fall"
+    },
+    {
+      "start": 74.92,
+      "end": 87.44,
+      "label": "D10 clapping hands (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 87.44,
+      "end": 96.76,
+      "label": "D09 hit table with hand (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 96.76,
+      "end": 109.28,
+      "label": "D10 clapping hands (U08)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 109.28,
+      "end": 123.58,
+      "label": "D11 opening and closing door (U08)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": [
+    {
+      "t": 66.34,
+      "what": "fall impact (F04)"
+    }
+  ]
+}

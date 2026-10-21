@@ -1,0 +1,52 @@
+{
+  "name": "T2",
+  "title": "T2: lateral slip, gets up and walks",
+  "description": "Walking, a lateral slip fall, 6 s on the floor, then walks away (recorded walk played twice).",
+  "simulated": true,
+  "seconds": 98.3,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 46.66,
+      "label": "D01 walking (U07)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 46.66,
+      "end": 58.98,
+      "label": "F02 lateral fall while walking (slip) (U07)",
+      "kind": "fall"
+    },
+    {
+      "start": 58.98,
+      "end": 64.98,
+      "label": "on the floor (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 64.98,
+      "end": 81.64,
+      "label": "D01 walking (U07)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 81.64,
+      "end": 98.3,
+      "label": "D01 walking (U07)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": [
+    {
+      "t": 51.22,
+      "what": "fall impact (F02)"
+    }
+  ]
+}

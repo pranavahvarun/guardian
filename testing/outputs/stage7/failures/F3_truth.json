@@ -1,0 +1,40 @@
+{
+  "name": "F3",
+  "title": "F3: fall at night",
+  "description": "Night (starts 02:30): walking to the bathroom, a forward slip, then 90 s still.",
+  "simulated": true,
+  "seconds": 148.0,
+  "clock": "02:30",
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 46.66,
+      "label": "D01 walking (U07)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 46.66,
+      "end": 58.04,
+      "label": "F01 forward fall while walking (slip) (U07)",
+      "kind": "fall"
+    },
+    {
+      "start": 58.04,
+      "end": 148.04,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 50.5,
+      "what": "fall impact (F01)"
+    }
+  ]
+}

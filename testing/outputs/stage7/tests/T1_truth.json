@@ -1,0 +1,40 @@
+{
+  "name": "T1",
+  "title": "T1: backward slip, then a long lie",
+  "description": "Walking, a backward slip fall, then 90 s without moving.",
+  "simulated": true,
+  "seconds": 147.7,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 46.14,
+      "label": "D01 walking (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 46.14,
+      "end": 57.68,
+      "label": "F03 backward fall while walking (slip) (U10)",
+      "kind": "fall"
+    },
+    {
+      "start": 57.68,
+      "end": 147.68,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 51.96,
+      "what": "fall impact (F03)"
+    }
+  ]
+}

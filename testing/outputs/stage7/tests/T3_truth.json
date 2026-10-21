@@ -1,0 +1,41 @@
+{
+  "name": "T3",
+  "title": "T3: busy day (elderly)",
+  "description": "Stairs, hitting a table with the hand, clapping, walking. Nothing should be raised. Substituted: D03->D01 (U22 has no D03).",
+  "simulated": true,
+  "seconds": 85.4,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 49.84,
+      "label": "D01 walking (U22)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 49.84,
+      "end": 55.5,
+      "label": "D09 hit table with hand (U22)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 55.5,
+      "end": 65.54,
+      "label": "D10 clapping hands (U22)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 65.54,
+      "end": 85.38,
+      "label": "D01 walking (U22)",
+      "kind": "daily activity"
+    }
+  ],
+  "events": []
+}

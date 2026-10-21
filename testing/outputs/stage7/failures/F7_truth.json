@@ -1,0 +1,64 @@
+{
+  "name": "F7",
+  "title": "F7: fall, gets up, then rests",
+  "description": "Walking, a trip fall, 6 s on the floor, gets up and walks, then rests in a chair for 60 s.",
+  "simulated": true,
+  "seconds": 166.7,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 46.14,
+      "label": "D01 walking (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 46.14,
+      "end": 56.74,
+      "label": "F04 forward fall while walking (trip) (U10)",
+      "kind": "fall"
+    },
+    {
+      "start": 56.74,
+      "end": 62.74,
+      "label": "on the floor (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 62.74,
+      "end": 74.46,
+      "label": "D04 sitting on a chair, wait, get up (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 74.46,
+      "end": 90.6,
+      "label": "D01 walking (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 90.6,
+      "end": 106.74,
+      "label": "D01 walking (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 106.74,
+      "end": 166.74,
+      "label": "resting in a chair (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 50.1,
+      "what": "fall impact (F04)"
+    }
+  ]
+}

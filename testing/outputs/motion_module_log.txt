@@ -984,3 +984,356 @@ STEP 6.6 RESULTS (8 Oct 2026) - all three real modules, 7 scenarios
   activity reads SITTING_STANDING while lying (no lying class). This is the
   case fusion must keep quiet on.
 STAGE 6 STATUS: DONE, except agreeing HR thresholds with Mithuna (6.4).
+
+STEP 7.1 + 7.2 - Fusion score and alert manager (8 Oct 2026, code ready)
+- core/fusion.py: five types (hard fall, long lie, faint, heart rate,
+  unresponsive), S = clip(T * sum(w q e) - sum(v q c)), emergency score = max.
+  Starting weights as in the fusion doc. Activity used only while motion says
+  moving (majority of last 10 s). HR from the estimated bpm, quality >= 0.5
+  only; untrusted windows hold the low/high counters. Night 22:00-07:00 from
+  the scenario clock; no clock = daytime. 60/100 bpm still placeholders.
+- core/alerts.py: IDLE -> CHECK_IN (0.4) / ALERT (0.7, 30 s cancel) ->
+  CAREGIVER -> URGENT (long lie 5 min, or check-in unanswered 120 s).
+  Check-in/alert clear by themselves below 0.4. After the caregiver is told
+  the alert stays open (recovery logged, not closed). Every event keeps its
+  evidence.
+- Logic check on hand-made inputs (not scenario data): impact then still ->
+  alert, caregiver at +31 s; moved again -> cleared; HR 42 sitting -> faint
+  type alert, caregiver; walking at HR 115 -> nothing; still at 23:30 -> nothing.
+- Note: a low HR with no fall is led by the faint type (its gate opens on
+  HR below 60 for 10 s), not the heart-rate type. Same outcome, different label.
+- Next: run py -m core.alerts all on the saved 7 scenarios (starting weights),
+  then 7.3 tuning.
+
+STEP 7.3a - Starting weights on the 7 tuning scenarios (8 Oct 2026)
+py -m core.alerts all, saved Stage 6.6 module outputs, no tuning yet.
+  scenario            expected                       got                                    match
+  normal_day          nothing                        nothing (peak 0.00)                    yes
+  hard_fall_long_lie  alert, caregiver               check-in, cleared, alert, caregiver    yes (end result)
+  fall_then_get_up    alert, cleared                 check-in, alert, cleared               yes
+  faint_collapse      alert, caregiver               check-in, alert, caregiver             yes
+  false_alarm         nothing                        nothing (peak 0.19)                    yes
+  hr_spike_no_fall    check-in                       check-in at 81.9 s (peak 0.62)         yes (provisional, HR thresholds)
+  night_sleep         nothing                        nothing (peak 0.00)                    yes
+RESULT 7/7 outcomes as expected at starting weights. Problems found:
+- hard_fall_long_lie: movement inside the fall recording after impact counted
+  as "moved again" (recovered True at 37.2 s), so the first check-in cleared.
+  Alert only at 47.1 s (22.5 s after impact), caregiver at 78.1 s (53.5 s
+  after impact) instead of about 35 s.
+- Every fall starts as a check-in, not an alert: right after an impact the
+  motion quality is 0.5 + 0.5 x stillness confidence (event not fully seen),
+  and the 10 s walking majority still includes walking from BEFORE the fall.
+- faint_collapse was caught by the hard-fall type (impact 0.95). The heart-rate
+  part of the faint type was never used: the HR dip happens at 16.5 s but the
+  physiological stream only starts at 30 s (warm-up). Not tested by this set.
+- Found by reading, not tested: unresponsive reaches check-in after 12 min
+  still (0.4 x 1800 s) and alert after 21 min in the daytime. The design says
+  check-in at 30 min. A daytime nap or TV would raise an alert.
+
+STAGE 7 PLAN (agreed 8 Oct 2026)
+7.1 fusion score                                     done
+7.2 alert manager                                    done
+7.3 tune on the 7 (fix problems above), freeze weights
+7.4 held-out T1-T7: build, run once, report as is
+7.5 live: replay with fusion, alerts in the DB, watch shows alerts
+7.6 failure study: where fusion fails, new failure scenarios F1.., fix what
+    can be fixed. Fixes after 7.4 are reported as after-test; T1-T7 keep their
+    first-run result.
+7.7 fusion report + review-ready output view (frontend skipped for this review)
+
+STEP 7.3b - Lead-in and first fusion fixes (8 Oct 2026, code ready)
+- simulator/scenarios.py: every scenario (and later T1-T7) starts with 30 s
+  of synthetic resting, band already worn, so the physiological stream is
+  warmed up before anything happens. All event times move 30 s later.
+  Scenario outputs must be regenerated (simulator.run all).
+- core/fusion.py:
+  - hard fall: walking only counts against it once the whole 10 s walking
+    window is after the impact (walking before the fall no longer lowers it).
+  - unresponsive: weight 1.0 -> 0.4. 30 min still in the daytime = check-in
+    (as designed), never an alert by itself; unanswered check-in -> urgent.
+  - evidence now also stores moved_s, since_impact and the activity state.
+- core/alerts.py: --trace prints every window's evidence and type scores,
+  used to tune the "moved again" problem on real module outputs.
+- Logic check on hand-made inputs: hit then still -> alert, caregiver;
+  moved again -> cleared; 30 min still in daytime -> check-in only.
+- Open for 7.3c: movement inside the fall recording counted as "moved
+  again" (hard_fall_long_lie). Needs the trace before choosing a fix.
+- Reminder (agreed): at the end of Stage 7, make a final fusion doc in the
+  same style as "Guardian Fusion: How the Emergency Score Works" with the
+  final weights, and send it to the group again.
+
+STEP 7.3b RESULTS (8 Oct 2026) - with the 30 s lead-in
+- simulator.run all: physiological stream now outputs from 31 s in every
+  scenario, before every event. Impacts: hard fall 54.1 s, get up 50.2 s,
+  faint 46.0 s.
+- core.alerts all: same outcomes as 7.3a (7/7 end results as expected).
+  faint_collapse: the faint type now uses heart rate (HR low counted from
+  63 s, faint score up to 0.88), but hard fall still leads (impact 0.94).
+- Trace, hard_fall_long_lie: the cause of the early clear is now clear.
+  (1) A walking step opened the gate at 33.5 s (impact 0.06) and the motion
+  module counted 23.6 s of "movement after impact" from it; that stale
+  "recovered" was still set in the first window after the real fall (58.3 s).
+  (2) After the real fall the recording has about 9 s of movement, which
+  reached "recovered" at 67.0 s and cleared the alert; it came back at
+  76.9 s once 10 s of stillness reset it.
+
+STEP 7.3c - "moved again" confirmation (8 Oct 2026)
+- core/fusion.py: "moved again" only counts if it belongs to the current
+  impact (seconds moved <= seconds since impact) and has held for 12 s.
+  Reason for 12 s: the motion module drops "recovered" after 10 s still, so
+  someone who struggles and then lies still keeps it for at most about
+  11.2 s (10 s + one window). Not fitted to the scenario.
+- Checked by replaying the trace values from the 7.3b run (rebuilt from the
+  printed trace, activity quality taken as 1; the rebuild reproduced the
+  7.3b events exactly before the change):
+  hard_fall_long_lie  check-in 58.3, alert 60.8, caregiver 91.8 s (was 107.9)
+                      no false clear
+  fall_then_get_up    check-in 54.6, alert 57.1, cleared 81.9 s (was 69.5);
+                      cancel window ends 87.1 s, so 5.2 s to spare
+  faint_collapse      unchanged: alert 55.8, caregiver 86.8 s
+- Known, left as is: every fall shows a check-in 1-3 s before the alert,
+  because motion quality is lower until the event has been fully observed.
+- testing/fusion_eval.py: tune (7 scenarios vs the locked results, PASS/FAIL,
+  timings), freeze (only if 7/7 pass; writes testing/outputs/stage7/
+  fusion_frozen.json with every setting and a fingerprint), test (T1-T7,
+  refuses if settings differ from the frozen ones, runs once).
+
+STEP 7.3 RESULTS (8 Oct 2026) - tuning done
+py -m testing.fusion_eval tune, settings 0a3011d7b96be571:
+  normal_day          nothing                                         PASS
+  hard_fall_long_lie  alert 60.8 s (+6.6), caregiver 91.8 s (+37.6)  PASS
+  fall_then_get_up    alert 57.1 s (+6.9), cleared                    PASS
+  faint_collapse      alert 55.8 s (+9.8), caregiver 86.8 s (+40.8)  PASS (hard fall type leads)
+  false_alarm         nothing                                         PASS
+  hr_spike_no_fall    check-in                                        PASS (provisional)
+  night_sleep         nothing                                         PASS
+RESULT tune: 7 of 7. Next: freeze these settings, then T1-T7 once.
+
+STEP 7.4 - Held-out test set built (8 Oct 2026, not run yet)
+- simulator/test_scenarios.py: T1-T7 as locked. Build details fixed before
+  any run: T2 still 6 s, T5 still 10 s, T2 and T5 end with the recorded walk
+  played twice (time for the outcome to be decided), T7 HR 80 at rest then
+  115 once walking, T6 HR 72 -> 42 over 10 s then 42 for 2 min.
+- simulator/run.py: run_scenario(sc) runs a built scenario through all
+  streams (used by the test).
+- testing/fusion_eval.py: fall_then_get_up, T2 and T5 must END cleared (the
+  locked wording "alert, then cleared"); before, any alert without a
+  caregiver counted. test saves outputs and truth to
+  testing/outputs/stage7/tests and writes fusion_test.txt. A second run needs
+  --again and is saved separately as a re-run.
+
+STEP 7.4 - frozen and first test attempt (8 Oct 2026)
+- tune with the stricter check: 7 of 7. freeze: settings 0a3011d7b96be571
+  frozen in testing/outputs/stage7/fusion_frozen.json.
+- First test attempt stopped while BUILDING T3: WEDA-FALL has no D03 for
+  U22. T1 and T2 had run through the modules, but no fusion outcome was
+  computed, printed or saved (fusion_test.txt not written). Fusion settings
+  were not touched. The next run is still the first run of the test.
+- Fix (build only): a daily activity a person never recorded is replaced by
+  the first available one from a fixed list (stairs -> walking; hit table ->
+  clapping -> door; clapping -> hit table -> door; door -> clapping -> hit
+  table; sit/get up -> collapse into chair -> crouch). Falls are never
+  replaced. Swaps go into the scenario description and the result file.
+  All seven are now built before any is run, so a missing recording stops
+  the test before anything runs.
+
+STEP 7.4 RESULTS (8 Oct 2026) - held-out test, FIRST RUN, frozen 0a3011d7b96be571
+py -m testing.fusion_eval test (T3: U22 has no D03, replaced by D01 walking)
+  test                        expected            got                      alert at (+s)   caregiver at (+s)
+  T1 backward slip, long lie  caregiver           caregiver        PASS    99.2 (+47.3)    130.2 (+78.3)
+  T2 lateral slip, walks      alert, cleared      alert, cleared   PASS    60.8 (+9.6)     -
+  T3 busy day                 nothing             nothing          PASS    -               -
+  T4 faint, HR 48             caregiver           caregiver        PASS    76.9 (+35.1)    107.9 (+66.1)  faint type
+  T5 fall sitting, gets up    check-in/alert, clr alert, cleared   PASS    42.2 (+11.6)    -
+  T6 HR 42 sitting            caregiver           caregiver        PASS*   91.8            122.8          faint type
+  T7 walking, HR 115          nothing             nothing          PASS    -               -
+RESULT test: 7 of 7 as expected (* provisional, HR thresholds).
+What this does and does not show:
+- Seven simulated cases, one run each. It shows the rules behave as designed
+  on people and recordings they were not tuned on. It is not an accuracy or
+  detection rate, and the heart rate and PPG are synthetic.
+- Outcomes were locked, timings were not. T1 took 47 s from impact to alert
+  and T4 35 s, against about 7-10 s for the tuning falls. Likely the impact
+  score for these falls was below the 0.7 alert line, so the alert only came
+  once stillness (long lie) or the faint evidence grew. To be confirmed from
+  the saved outputs (py -m core.alerts T1 --trace) in 7.6.
+- T4 and T6 were raised by the faint type: the heart-rate part of fusion
+  worked on cases it was not tuned on. T6 is labelled "Faint", not "Heart
+  rate" (known since 7.2).
+- T7: walking explained a heart rate of 115, nothing raised.
+
+STEP 7.5 - Fusion and alerts in the database and the live replay (code ready)
+- backend/db/init/05_alerts.sql: alerts gets stage, history, updated_at.
+  One row per alert episode; status resolved when cleared/cancelled.
+- core/alerts.py: fusion_record() stores the emergency score as stream
+  'fusion' in stream_outputs; --trace also reads the saved T1-T7 outputs.
+- core/store.py: sync_alerts() writes alert episodes; --alerts lists them.
+- simulator/run.py --db and simulator/live.py: run fusion and the alert
+  manager (frozen settings) and save both. live.py can replay T1-T7.
+- core/watch.py: shows the emergency score and latest alert, still limited
+  to the wearers that user may see.
+- Checked with a mock database on the 7.3c trace: one row per episode,
+  opened at the check-in, updated at alert and caregiver / cleared.
+
+STEP 7.5 RESULTS (9 Oct 2026)
+- 05_alerts.sql applied. simulator.run all --db: runs 18-24, each with
+  fusion rows; core.store --alerts: 4 alert rows, matching the outcomes
+  (hard fall: caregiver, open; get up: cleared, resolved; faint: caregiver,
+  open; HR spike: check-in, open). No rows for the 3 quiet scenarios.
+- Live replay (run 25, x2) and core.watch --user 5 (Caregiver 1): the
+  caregiver saw Wearer 1's run with the emergency score and the alert going
+  check_in -> alert -> caregiver at the same times as the offline replay.
+- Display problem found: the live line showed motion's raw "moved again: yes"
+  (stale at 58.3 s, and 67-75.7 s) while fusion was ignoring it. Fixed: the
+  live and watch lines now show what fusion believes: yes / checking / no.
+- A run that ends during a check-in leaves the alert row open (HR spike).
+  Fine for replays; Stage 8 needs a way to close them.
+
+CORRECTION to 7.3c: "12 s cannot be fooled" holds only for a struggle of
+about 8 s. Motion keeps "recovered" for (struggle - 8 s) + 10 s still, so a
+struggle longer than about 9 s, then lying still, will be confirmed as moved
+again and clear the alert for a while. Tested in 7.6 (F2).
+
+STEP 7.6 - Failure study set up (9 Oct 2026, frozen settings, not tuning)
+testing/fusion_failures.py. Good-system behaviour and our prediction were
+written before running:
+  A  T1 and T4 slow alerts: peak impact score and which type raised the alert
+  B  F1 soft collapse, no impact, 2 min still   good: alert      predict: nothing
+     F2 fall, 20 s struggle, then still         good: caregiver  predict: caregiver, late
+     F3 fall at night 02:30                     good: caregiver  predict: caregiver
+     F4 fall, cannot get up, arms keep moving   good: caregiver  predict: alert, cleared
+     F5 daytime nap 35 min, nobody answers      good: nothing / check-in  predict: check-in, urgent
+  C  I1 T7 with activity missing                good: nothing    predict: HR alert (false)
+     I2 hard fall, no PPG                       good: caregiver  predict: caregiver
+     I3 T4 faint, no PPG                        good: caregiver  predict: caregiver, later
+     I4 HR spike, HR quality 0.45               good: check-in   predict: nothing
+Fixes found here are reported as made after the held-out test.
+
+STEP 7.6 RESULTS (9 Oct 2026) - failure study on v1 (frozen, tested)
+A  T1: motion peak impact 0.62 (below the 0.7 alert line), so hard fall only
+   gave a check-in; the alert came from long lie at 42 s still.
+   T4: peak impact 0.36; the alert came from faint (27 s still, HR 50).
+   Both are the designed slow path for moderate impacts, not a bug. Kept.
+B  F1 soft collapse, no impact     nothing                  as predicted: a real gap
+   F2 struggle 20 s, then still    caregiver at +64 s       as predicted: false clear, then late
+   F3 fall at night                caregiver at +38 s       as predicted: night does not hide falls
+   F4 cannot get up, moves arms    alert, cleared           as predicted: a real gap
+   F5 35 min daytime nap           check-in, then urgent    as predicted: false caregiver alert
+C  I1 activity missing, walking HR 115   false HR alert     as predicted
+   I2 no PPG, hard fall                  caregiver +38 s    as predicted
+   I3 no PPG, T4 faint                   check-in, cleared  WORSE than predicted
+   I4 HR quality 0.45 (below gate)       nothing            as predicted: cost of the gate
+New bug found while explaining I3: motion's impact score fades after its
+60 s hold (0.91 drops below 0.5 about 78 s after the fall). The long-lie
+gate then closes while the person still lies there, so "urgent at 5 min"
+could never fire, and the caregiver log even showed "recovered". I3 was
+cleared the same way (impact 0.36 fell below the faint gate).
+
+STEP 7.6 FIXES - fusion v2 (made AFTER the held-out test)
+v1 kept unchanged in core/v1/ (fingerprint 0a3011d7b96be571, T1-T7 7/7 is
+the held-out result and stays the reported one). Weights unchanged; rules:
+  1 impact latch: gates and evidence use the strongest impact of the event;
+    dropped at confirmed recovery, a new impact, or movement after motion
+    lets go. Fixes the fading gate (urgent long lie, I3 clearing).
+  2 recovery must look upright: over the 12 s, at least half of activity
+    windows walking or sitting/standing. Fixes F4, and F2's false clear.
+    Once confirmed the event is over (no re-alert from the same impact).
+    Activity missing -> recovery cannot be confirmed -> wearer must cancel.
+  3 activity missing: "walking" falls back to motion's moving, weighted by
+    motion quality. Fixes I1.
+  alerts: urgent long lie checked on the long-lie score, not the lead type.
+Hand-made checks: 6 min lie v1 caregiver + "recovered" at 114 s, never
+urgent; v2 urgent at 322 s. Arms on the floor v1 cleared, v2 caregiver.
+Get up then sit v1 cleared then a 2nd check-in, v2 cleared only. Walking
+HR 115 with no activity v1 caregiver, v2 nothing. 7.3c trace replay: v2
+gives the same events as v1.
+New cases added WITH these fixes (not independent): F6 fall then 6 min
+still, F7 gets up then rests 60 s.
+testing/fusion_eval.py: v1 file never overwritten; v2 frozen separately with
+--after-test "reason"; its T1-T7 run is labelled an after-test check.
+testing/fusion_failures.py: every case run through v1 and v2 side by side.
+Not fixed (limits to report): F1 collapse with no impact and normal HR
+(needs a lying/posture signal the wrist does not give); I4 (the 0.5 HR
+quality gate trades missed HR events for fewer false ones); F5 waits on a
+team decision about naps.
+
+STEP 7.6 RESULTS, v2 (9 Oct 2026)
+- tune v2 (2ee9b8d818c1af37): 7 of 7, same events and times as v1.
+- frozen v2 -> testing/outputs/stage7/fusion_frozen_v2.json, labelled made
+  AFTER the held-out test. v1 file untouched.
+- T1-T7 with v2 (after-test check, cases already seen): 7 of 7, same times
+  as v1. The reported held-out result stays v1's first run.
+- Failure study, v1 -> v2:
+  F1 soft collapse, no impact       nothing -> nothing                  not fixed (limit)
+  F2 struggle 20 s, then still      caregiver +64 s -> +38 s, no false clear   fixed
+  F3 fall at night                  caregiver +38 s -> same             was fine
+  F4 cannot get up, arms moving     cleared -> caregiver +44 s          fixed
+  F5 35 min daytime nap             urgent -> urgent                    team decision
+  F6 6 min on the floor             no urgent -> urgent                 fixed (bug)
+  F7 gets up, then rests            2nd alert -> no 2nd alert           fixed
+  I1 activity missing, HR 115 walk  false alert -> nothing              fixed
+  I2 no PPG, hard fall              caregiver +38 s -> same             was fine
+  I3 no PPG, faint with impact 0.36 check-in then cleared -> check-in stays open
+                                    (better, but no alert inside the scenario;
+                                    it would go urgent after 2 min unanswered)
+  I4 HR quality 0.45                nothing -> nothing                  not fixed (gate trade-off)
+- F6 and F7 were written with the fixes, so they confirm the fixes work as
+  designed; they are not independent evidence.
+STAGE 7 left: F5 decision, 7.7 fusion report + final fusion doc for the group.
+
+STEP 7.6 - F5 decision, fusion v3 (9 Oct 2026, after the held-out test)
+- Team decision (Pranavah): second check-in before urgent, for the
+  UNRESPONSIVE type only. Unanswered check-in -> wait 5 min -> second
+  check-in -> urgent only if that is unanswered too. Heart-rate and faint
+  check-ins still go urgent after 2 min.
+- Hand-made check (still from t=0, normal HR, nobody answers): 35 min:
+  check-in 1800 s, unanswered 1921 s, nothing more. 40 min: second check-in
+  2221 s, urgent 2341 s (was 1921 s in v2: 7 min later, as intended).
+- Weights unchanged; 7.3c trace replay unchanged. VERSION = 3, new setting
+  SECOND_CHECKIN_GAP_S = 300 s. To be frozen as v3 with --after-test.
+- 9 Oct 01:35: first v3 run actually ran v2 (fingerprint 2ee9b8d818c1af37,
+  F5 still urgent): the v3 files had not reached the repo. Re-written and
+  checked by file size at 01:36. Run again; v3 fingerprint is b2c6184d71c1ab4c.
+
+STEP 7.6 RESULTS, v3 (9 Oct 2026, 01:48)
+- tune v3 (b2c6184d71c1ab4c): 7 of 7. Frozen v3 -> fusion_frozen_v3.json
+  (made after the held-out test). T1-T7 v3 after-test check: 7 of 7, same
+  times as v1. Failure study: as v2, plus F5 nap now "check-in -> check-in
+  unanswered", no caregiver alert. STAGE 7.6 DONE.
+
+STEP 7.7 - Final fusion doc (9 Oct 2026)
+- Doc "Guardian Fusion: Final Weights and Rules (Stage 7)", same style as
+  the first fusion doc: modules, formula, levels, final weights, rules added
+  in testing, alert steps, worked example with real v3 numbers
+  (hard_fall_long_lie: check-in 58.3 s, alert 60.8 s, caregiver 91.8 s),
+  quiet cases, how it was tested (v1 held-out 7/7 is the reported result),
+  limits, formula and variables. For the group.
+- Left in 7.7: fusion report for the review and a cleaner console output.
+
+STEP 7.7 - Review outputs (9 Oct 2026, code ready)
+- demo/ package, plain text, one screen each, reads saved results only:
+  py -m demo.motion     same dataset (WEDA locked test) + never-trained-on
+                        datasets (UMAFall, FallAllD), from stage35/step6_test.csv
+  py -m demo.activity   WEDA leave-one-person-out vs UMAFall, side by side,
+                        from stage6/activity_same.txt and activity_cross.txt
+  py -m demo.physio     PPG-DaLiA leave-one-person-out (v2) + quality check on
+                        real PPG, from stage6/physio_v2.txt and physio_dalia_windows.csv
+  py -m demo.fusion     4 simulated cases replayed through fusion v3 with each
+                        score worked out (hard fall, gets up, faint, night), the
+                        locked test results, and F4 (v1 missed, v3 caught)
+- Optional 5th: live replay (simulator.live + core.watch).
+- demo/ revised (9 Oct): no names, no "how it works" text, data only.
+  Saved results: demo.motion / demo.activity / demo.physio, and demo.stats
+  (all three). Run live: demo.motion_eval (model in use on the raw
+  recordings of the locked test people of all three datasets; note: the
+  model in use is the 3 s version, so these numbers are new, not the 1.5 s
+  one-time test), demo.activity_eval (WEDA leave-one-person-out trained now
+  + UMAFall frozen run), demo.physio_eval --root (raw PPG through the module
+  + leave-one-person-out trained now). Fusion: demo.fusion.
+
+[2026-10-09] Live demo output reformatted for the review (both ends). New core/screen.py holds one table used by simulator/live.py (band side) and core/watch.py (caregiver side). Columns, headings printed once: time | motion (impact score) | still (s) | activity | heart (bpm) | emergency. Alert events go at the end of their row (CHECK-IN, ALERT, CAREGIVER ALERTED, URGENT, cleared). Truth line and per-row labels removed from the live screen. watch now prints every window (not only the latest) and holds a window back until its fusion row is in. live.py writes alerts before the window rows so the watcher sees both together. Fusion logic unchanged (v3, b2c6184d71c1ab4c).
+[2026-10-09] Caregiver view (core.watch) now also shows the five type scores fusion computes (fall, long lie, faint, HR, unresponsive, 0 to 1) before the emergency column, under one group heading; emergency = the highest of them. Band side (simulator.live) unchanged. core/screen.py: header(types=True), row(..., types=dict).
+[2026-10-09] Alert manager doc made ("Guardian Alert Manager: How an Alert Is Sent (Stage 7)"): what it does, inputs/outputs, 5-state diagram, rules and timings, v2/v3 changes, T1-T7 alert/caregiver times (v1 first run), limits (starting values, cancel/answer never pressed in simulations, slow path for weaker impacts, +7 min for unresponsive, open rows until Stage 8).
+[2026-10-09] simulator.live: the heart module warm-up (30 s lead-in) is no longer played or shown. Those windows still go through every module, fusion and the alert manager (same results as before), but without real-time waiting, printing or saving; the table and the caregiver view start at the first window with a heart rate (about 31 s). --show-warmup plays it as before.
+[2026-10-09] New live-demo scenario demo_long_lie (simulator/scenarios.py, DEMOS; not in SCENARIOS, so tuning, simulator.run all and the frozen results are untouched): hard_fall_long_lie with 340 s still instead of 60 s, HR settling to 92 after 2 min. Shows motion impact wearing off (held 60 s, then decays to 0) while the fusion latch keeps the impact and long lie stays 1.0, ending caregiver -> URGENT at 300 s still. Logic checked here with a hand-made fall in place of the WEDA recordings (not reachable from this machine): motion 0.59 -> 0.00 by about 190 s after the fall, emergency 1.00, check-in -> alert -> caregiver -> urgent. simulator.live accepts it: py -m simulator.live demo_long_lie --speed 4.
+[2026-10-09] demo_long_lie run 30 (caregiver view, x speed): check-in 58.3, alert 60.8, caregiver 91.8, URGENT long lie 365.8 s (300.1 s still). Motion column 0.91 held, decays from 115 s, 0.00 from 231.9 s; fusion hard-fall type stays 0.91 (impact latch, by design: no confirmed recovery), long lie 1.00, emergency 1.00. Unresponsive rises 0.00 -> 0.07 (still/1800 x 0.4, daytime; full 0.4 only at 30 min). Found: (1) duplicate rows in core.watch: t_s is a real (float4), so 54.6 can read back as 54.600002 and was fetched again. Fixed: next poll starts 0.1 s after the last printed window. (2) One-window dip at 231.9 s (fall 0.45, lie 0.50, emergency 0.50): motion wipes its event about 177 s after the impact and reset() also clears the sample buffer, so _quality() halves q for one window ("buffer not primed"). No effect on alerts here (already CAREGIVER, still 166 s). Not fixed yet (motion module change).

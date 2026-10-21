@@ -1,0 +1,40 @@
+{
+  "name": "T4",
+  "title": "T4: faint forward from sitting, slow heart rate",
+  "description": "Sitting, a forward fall from the chair as in a faint, heart rate dips to 48, then 90 s still.",
+  "simulated": true,
+  "seconds": 139.6,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 40.94,
+      "label": "D04 sitting on a chair, wait, get up (U04)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 40.94,
+      "end": 49.58,
+      "label": "F06 forward fall while sitting (faint or asleep) (U04)",
+      "kind": "fall"
+    },
+    {
+      "start": 49.58,
+      "end": 139.58,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 41.76,
+      "what": "fall impact (F06)"
+    }
+  ]
+}

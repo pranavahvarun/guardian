@@ -1,0 +1,52 @@
+{
+  "name": "F2",
+  "title": "F2: fall, struggles, then lies still",
+  "description": "Walking, a forward slip, about 20 s of arm movement on the floor (recorded clapping and table hits), then 90 s still.",
+  "simulated": true,
+  "seconds": 163.0,
+  "clock": null,
+  "truth": [
+    {
+      "start": 0.0,
+      "end": 30.0,
+      "label": "lead-in: resting, band already worn (synthetic)",
+      "kind": "synthetic"
+    },
+    {
+      "start": 30.0,
+      "end": 46.14,
+      "label": "D01 walking (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 46.14,
+      "end": 57.86,
+      "label": "F01 forward fall while walking (slip) (U10)",
+      "kind": "fall"
+    },
+    {
+      "start": 57.86,
+      "end": 66.2,
+      "label": "D10 clapping hands (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 66.2,
+      "end": 73.02,
+      "label": "D09 hit table with hand (U10)",
+      "kind": "daily activity"
+    },
+    {
+      "start": 73.02,
+      "end": 163.02,
+      "label": "lying still (synthetic)",
+      "kind": "synthetic"
+    }
+  ],
+  "events": [
+    {
+      "t": 50.92,
+      "what": "fall impact (F01)"
+    }
+  ]
+}

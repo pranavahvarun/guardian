@@ -1,0 +1,13 @@
+test: T1-T7 held-out test, first run, frozen settings 0a3011d7b96be571
+
+  scenario                   expected         got                ok   first type   alert at (+s after event)  caregiver at     path
+  T1 backward slip, long lie caregiver        caregiver          PASS Hard fall    99.2s (+47.3)              130.2s (+78.3)   check-in -> alert -> caregiver
+  T2 lateral slip, walks     alert            alert, cleared     PASS Hard fall    60.8s (+9.6)               -                check-in -> alert -> cleared
+  T3 busy day                nothing          nothing            PASS -            -                          -                nothing
+  T4 faint, HR 48            caregiver        caregiver          PASS Faint        76.9s (+35.1)              107.9s (+66.1)   check-in -> alert -> caregiver
+  T5 fall sitting, gets up   check-in/alert   alert, cleared     PASS Hard fall    42.2s (+11.6)              -                check-in -> alert -> cleared
+  T6 HR 42 sitting           caregiver        caregiver          PASS* Faint        91.8s                      122.8s           check-in -> alert -> caregiver
+  T7 walking, HR 115         nothing          nothing            PASS -            -                          -                nothing
+  * provisional: heart-rate thresholds 60/100 bpm not yet confirmed with sources
+  substituted recordings: T3: D03->D01 (U22 has no D03)
+RESULT test: 7 of 7 as expected
